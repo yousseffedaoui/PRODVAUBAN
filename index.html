@@ -3,27 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion de Production - Rapports PDF</title>
+    <title>Gestion de Production - Version Finale</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
+        th { background-color: #f2f2f2; position: sticky; top: 0; }
         input, select { width: 100%; padding: 5px; box-sizing: border-box; }
         button { padding: 8px 12px; margin: 5px; cursor: pointer; }
         .btn-add { background-color: #4CAF50; color: white; border: none; }
+        .btn-edit { background-color: #FFC107; color: black; border: none; }
+        .btn-delete { background-color: #f44336; color: white; border: none; }
         .btn-report { background-color: #2196F3; color: white; border: none; }
+        .btn-save { background-color: #4CAF50; color: white; border: none; }
+        .btn-cancel { background-color: #9E9E9E; color: white; border: none; }
         .form-group { margin-bottom: 15px; }
         .report-controls { margin: 20px 0; padding: 15px; background: #f9f9f9; }
         .hidden { display: none; }
+        .efficiency-high { background-color: #d4edda; }
+        .efficiency-medium { background-color: #fff3cd; }
+        .efficiency-low { background-color: #f8d7da; }
+        .editing { background-color: #e3f2fd !important; }
+        .action-btns { white-space: nowrap; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Suivi de Production Journalier</h1>
+        <h1>Gestion de Production - Suivi Complet</h1>
         
         <form id="productionForm">
             <div class="form-group">
@@ -32,19 +41,19 @@
             </div>
             
             <div class="form-group">
-                <label for="salle">Numéro de salle:</label>
+                <label for="salle">Numéro de salle (1-10):</label>
                 <select id="salle" required>
                     <option value="">Sélectionnez une salle</option>
                     <option value="142">Salle 142</option>
                     <option value="158">Salle 158</option>
-                    <option value="132">Salle 132</option>
+                    <option value="133">Salle 135</option>
                     <option value="122">Salle 122</option>
-                    <option value="135">Salle 135</option>
+                    <option value="118">Salle 118</option>
+                    <option value="132">Salle 132</option>
+                    <option value="139">Salle 139</option>
                     <option value="A">Salle A</option>
                     <option value="B">Salle B</option>
                     <option value="C">Salle C</option>
-                    <option value="118">Salle 118</option>
-                    <option value="139">Salle 139</option>
                 </select>
             </div>
             
@@ -60,20 +69,30 @@
             
             <div class="form-group">
                 <label for="quantiteDepart">Quantité de départ:</label>
-                <input type="number" id="quantiteDepart" required>
+                <input type="number" id="quantiteDepart" min="0" required>
             </div>
             
             <div class="form-group">
                 <label for="quantiteTotale">Quantité totale à faire:</label>
-                <input type="number" id="quantiteTotale" required>
+                <input type="number" id="quantiteTotale" min="0" required>
             </div>
             
             <div class="form-group">
                 <label for="quantiteFin">Quantité en fin de journée:</label>
-                <input type="number" id="quantiteFin" required>
+                <input type="number" id="quantiteFin" min="0" required>
             </div>
             
-            <button type="button" class="btn-add" onclick="ajouterProduction()">Ajouter à la production</button>
+            <div class="form-group">
+                <label for="efficaciteTheorique">Quantité à produire à 100% (objectif idéal):</label>
+                <input type="number" id="efficaciteTheorique" min="1" required>
+                <small>Cette valeur sera utilisée comme référence pour calculer l'efficacité réelle</small>
+            </div>
+            
+            <input type="hidden" id="editIndex" value="-1">
+            
+            <button type="button" class="btn-add" id="addButton" onclick="ajouterProduction()">Ajouter</button>
+            <button type="button" class="btn-save hidden" id="saveButton" onclick="sauvegarderModification()">Enregistrer</button>
+            <button type="button" class="btn-cancel hidden" id="cancelButton" onclick="annulerModification()">Annuler</button>
         </form>
         
         <div class="report-controls">
@@ -107,28 +126,35 @@
             <button type="button" class="btn-report" onclick="genererRapport()">Générer le Rapport PDF</button>
         </div>
         
-        <table id="productionTable">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Salle</th>
-                    <th>MO</th>
-                    <th>Produit</th>
-                    <th>Départ</th>
-                    <th>Total à faire</th>
-                    <th>Fin journée</th>
-                    <th>Reste à produire</th>
-                </tr>
-            </thead>
-            <tbody id="productionData">
-                <!-- Les données seront ajoutées ici -->
-            </tbody>
-        </table>
+        <div style="overflow-x: auto;">
+            <table id="productionTable">
+                <thead>
+                    <tr>
+                        <th>Actions</th>
+                        <th>Date</th>
+                        <th>Salle</th>
+                        <th>MO</th>
+                        <th>Produit</th>
+                        <th>Départ</th>
+                        <th>Total</th>
+                        <th>Fin jour</th>
+                        <th>Produit</th>
+                        <th>Reste</th>
+                        <th>Objectif 100%</th>
+                        <th>Efficacité</th>
+                    </tr>
+                </thead>
+                <tbody id="productionData">
+                    <!-- Les données seront ajoutées ici -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
         // Initialisation des données
         let productions = JSON.parse(localStorage.getItem('productions')) || [];
+        let editIndex = -1;
         
         // Initialisation de jsPDF
         const { jsPDF } = window.jspdf;
@@ -157,6 +183,14 @@
                     document.getElementById('monthlySelection').classList.remove('hidden');
                 }
             });
+            
+            // Calculer automatiquement l'objectif 100% basé sur la quantité totale
+            document.getElementById('quantiteTotale').addEventListener('change', function() {
+                const qteTotale = parseInt(this.value);
+                if (!isNaN(qteTotale) && qteTotale > 0) {
+                    document.getElementById('efficaciteTheorique').value = qteTotale;
+                }
+            });
         });
         
         function ajouterProduction() {
@@ -168,15 +202,34 @@
             const quantiteDepart = parseInt(document.getElementById('quantiteDepart').value);
             const quantiteTotale = parseInt(document.getElementById('quantiteTotale').value);
             const quantiteFin = parseInt(document.getElementById('quantiteFin').value);
+            const efficaciteTheorique = parseInt(document.getElementById('efficaciteTheorique').value);
             
             // Validation
-            if (!date || !salle || !mo || !produit || isNaN(quantiteDepart) || isNaN(quantiteTotale) || isNaN(quantiteFin)) {
+            if (!date || !salle || !mo || !produit || isNaN(quantiteDepart) || 
+                isNaN(quantiteTotale) || isNaN(quantiteFin) || isNaN(efficaciteTheorique)) {
                 alert('Veuillez remplir tous les champs correctement');
                 return;
             }
             
-            // Calculer le reste à produire
+            if (quantiteFin < quantiteDepart) {
+                alert('La quantité en fin de journée ne peut pas être inférieure à la quantité de départ');
+                return;
+            }
+            
+            if (quantiteTotale < quantiteDepart) {
+                alert('La quantité totale à faire ne peut pas être inférieure à la quantité de départ');
+                return;
+            }
+            
+            // Calculer les valeurs dérivées
+            const quantiteProduite = quantiteFin - quantiteDepart;
             const reste = quantiteTotale - quantiteFin;
+            
+            // Calcul de l'efficacité réelle
+            const efficaciteReelle = Math.min(
+                Math.round((quantiteProduite / efficaciteTheorique) * 100),
+                200
+            );
             
             // Créer l'objet production
             const production = {
@@ -187,7 +240,10 @@
                 quantiteDepart,
                 quantiteTotale,
                 quantiteFin,
-                reste
+                quantiteProduite,
+                reste,
+                efficaciteTheorique,
+                efficaciteReelle
             };
             
             // Ajouter à la liste
@@ -202,16 +258,36 @@
             // Réinitialiser le formulaire
             document.getElementById('productionForm').reset();
             document.getElementById('date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('editIndex').value = "-1";
+            document.getElementById('addButton').classList.remove('hidden');
+            document.getElementById('saveButton').classList.add('hidden');
+            document.getElementById('cancelButton').classList.add('hidden');
         }
         
         function afficherProductions() {
             const tbody = document.getElementById('productionData');
             tbody.innerHTML = '';
             
-            productions.forEach(prod => {
+            productions.forEach((prod, index) => {
                 const row = document.createElement('tr');
+                if (index === editIndex) {
+                    row.classList.add('editing');
+                }
+                
+                // Appliquer une classe CSS en fonction de l'efficacité
+                if (prod.efficaciteReelle >= 90) {
+                    row.classList.add('efficiency-high');
+                } else if (prod.efficaciteReelle >= 70) {
+                    row.classList.add('efficiency-medium');
+                } else {
+                    row.classList.add('efficiency-low');
+                }
                 
                 row.innerHTML = `
+                    <td class="action-btns">
+                        <button class="btn-edit" onclick="modifierProduction(${index})">✏️</button>
+                        <button class="btn-delete" onclick="supprimerProduction(${index})">🗑️</button>
+                    </td>
                     <td>${prod.date}</td>
                     <td>Salle ${prod.salle}</td>
                     <td>${prod.mo}</td>
@@ -219,11 +295,117 @@
                     <td>${prod.quantiteDepart}</td>
                     <td>${prod.quantiteTotale}</td>
                     <td>${prod.quantiteFin}</td>
+                    <td>${prod.quantiteProduite}</td>
                     <td>${prod.reste}</td>
+                    <td>${prod.efficaciteTheorique}</td>
+                    <td>${prod.efficaciteReelle}%</td>
                 `;
                 
                 tbody.appendChild(row);
             });
+        }
+        
+        function modifierProduction(index) {
+            const prod = productions[index];
+            editIndex = index;
+            
+            // Remplir le formulaire avec les données à modifier
+            document.getElementById('date').value = prod.date;
+            document.getElementById('salle').value = prod.salle;
+            document.getElementById('mo').value = prod.mo;
+            document.getElementById('produit').value = prod.produit;
+            document.getElementById('quantiteDepart').value = prod.quantiteDepart;
+            document.getElementById('quantiteTotale').value = prod.quantiteTotale;
+            document.getElementById('quantiteFin').value = prod.quantiteFin;
+            document.getElementById('efficaciteTheorique').value = prod.efficaciteTheorique;
+            document.getElementById('editIndex').value = index;
+            
+            // Changer les boutons
+            document.getElementById('addButton').classList.add('hidden');
+            document.getElementById('saveButton').classList.remove('hidden');
+            document.getElementById('cancelButton').classList.remove('hidden');
+            
+            // Mettre à jour l'affichage
+            afficherProductions();
+        }
+        
+        function sauvegarderModification() {
+            const index = parseInt(document.getElementById('editIndex').value);
+            if (index < 0 || index >= productions.length) return;
+            
+            // Récupérer les nouvelles valeurs
+            const date = document.getElementById('date').value;
+            const salle = document.getElementById('salle').value;
+            const mo = document.getElementById('mo').value;
+            const produit = document.getElementById('produit').value;
+            const quantiteDepart = parseInt(document.getElementById('quantiteDepart').value);
+            const quantiteTotale = parseInt(document.getElementById('quantiteTotale').value);
+            const quantiteFin = parseInt(document.getElementById('quantiteFin').value);
+            const efficaciteTheorique = parseInt(document.getElementById('efficaciteTheorique').value);
+            
+            // Validation
+            if (!date || !salle || !mo || !produit || isNaN(quantiteDepart) || 
+                isNaN(quantiteTotale) || isNaN(quantiteFin) || isNaN(efficaciteTheorique)) {
+                alert('Veuillez remplir tous les champs correctement');
+                return;
+            }
+            
+            // Calculer les nouvelles valeurs
+            const quantiteProduite = quantiteFin - quantiteDepart;
+            const reste = quantiteTotale - quantiteFin;
+            const efficaciteReelle = Math.min(
+                Math.round((quantiteProduite / efficaciteTheorique) * 100),
+                200
+            );
+            
+            // Mettre à jour l'objet
+            productions[index] = {
+                date,
+                salle,
+                mo,
+                produit,
+                quantiteDepart,
+                quantiteTotale,
+                quantiteFin,
+                quantiteProduite,
+                reste,
+                efficaciteTheorique,
+                efficaciteReelle
+            };
+            
+            // Sauvegarder
+            localStorage.setItem('productions', JSON.stringify(productions));
+            
+            // Réinitialiser
+            document.getElementById('productionForm').reset();
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+            editIndex = -1;
+            document.getElementById('editIndex').value = "-1";
+            document.getElementById('addButton').classList.remove('hidden');
+            document.getElementById('saveButton').classList.add('hidden');
+            document.getElementById('cancelButton').classList.add('hidden');
+            
+            // Mettre à jour l'affichage
+            afficherProductions();
+        }
+        
+        function annulerModification() {
+            document.getElementById('productionForm').reset();
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+            editIndex = -1;
+            document.getElementById('editIndex').value = "-1";
+            document.getElementById('addButton').classList.remove('hidden');
+            document.getElementById('saveButton').classList.add('hidden');
+            document.getElementById('cancelButton').classList.add('hidden');
+            afficherProductions();
+        }
+        
+        function supprimerProduction(index) {
+            if (confirm('Voulez-vous vraiment supprimer cette entrée?')) {
+                productions.splice(index, 1);
+                localStorage.setItem('productions', JSON.stringify(productions));
+                afficherProductions();
+            }
         }
         
         function genererRapport() {
@@ -273,11 +455,14 @@
                 return;
             }
             
-            // Calculer les totaux
+            // Calculer les totaux et moyennes
             const totalDepart = filteredData.reduce((sum, p) => sum + p.quantiteDepart, 0);
             const totalAFaire = filteredData.reduce((sum, p) => sum + p.quantiteTotale, 0);
             const totalFin = filteredData.reduce((sum, p) => sum + p.quantiteFin, 0);
+            const totalProduit = filteredData.reduce((sum, p) => sum + p.quantiteProduite, 0);
             const totalReste = filteredData.reduce((sum, p) => sum + p.reste, 0);
+            const totalObjectif = filteredData.reduce((sum, p) => sum + p.efficaciteTheorique, 0);
+            const moyenneEfficacite = Math.round(filteredData.reduce((sum, p) => sum + p.efficaciteReelle, 0) / filteredData.length);
             
             // Préparer les données pour le PDF
             const pdfData = filteredData.map(p => [
@@ -288,20 +473,26 @@
                 p.quantiteDepart,
                 p.quantiteTotale,
                 p.quantiteFin,
-                p.reste
+                p.quantiteProduite,
+                p.reste,
+                p.efficaciteTheorique,
+                `${p.efficaciteReelle}%`
             ]);
             
             // Ajouter les totaux
             pdfData.push([
-                'TOTAUX', '', '', '',
+                'TOTAUX / MOYENNES', '', '', '',
                 totalDepart,
                 totalAFaire,
                 totalFin,
-                totalReste
+                totalProduit,
+                totalReste,
+                totalObjectif,
+                `${moyenneEfficacite}%`
             ]);
             
             // Créer le PDF
-            const doc = new jsPDF();
+            const doc = new jsPDF('landscape');
             
             // Titre
             doc.setFontSize(16);
@@ -312,21 +503,38 @@
             // Tableau
             doc.autoTable({
                 startY: 30,
-                head: [['Date', 'Salle', 'MO', 'Produit', 'Départ', 'Total', 'Fin jour', 'Reste']],
+                head: [['Date', 'Salle', 'MO', 'Produit', 'Départ', 'Total', 'Fin jour', 'Produit', 'Reste', 'Objectif 100%', 'Efficacité']],
                 body: pdfData,
                 styles: { fontSize: 8 },
                 headStyles: { fillColor: [22, 160, 133] },
                 columnStyles: {
-                    4: { cellWidth: 15 },
-                    5: { cellWidth: 15 },
-                    6: { cellWidth: 15 },
-                    7: { cellWidth: 15 }
+                    4: { cellWidth: 12 },
+                    5: { cellWidth: 12 },
+                    6: { cellWidth: 12 },
+                    7: { cellWidth: 12 },
+                    8: { cellWidth: 12 },
+                    9: { cellWidth: 12 },
+                    10: { cellWidth: 12 }
+                },
+                didDrawCell: function(data) {
+                    // Colorer les cellules d'efficacité
+                    if (data.column.index === 10 && data.cell.raw) {
+                        const effValue = parseInt(data.cell.raw);
+                        if (effValue >= 90) {
+                            doc.setFillColor(212, 237, 218);
+                        } else if (effValue >= 70) {
+                            doc.setFillColor(255, 243, 205);
+                        } else {
+                            doc.setFillColor(248, 215, 218);
+                        }
+                        doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
+                    }
                 },
                 didDrawPage: function(data) {
                     // Footer
                     doc.setFontSize(8);
                     doc.setTextColor(150);
-                    doc.text('Système de Gestion de Production', data.settings.margin.left, doc.internal.pageSize.height - 10);
+                    doc.text('Système de Gestion de Production - © 2023', data.settings.margin.left, doc.internal.pageSize.height - 10);
                 }
             });
             
