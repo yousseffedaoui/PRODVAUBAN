@@ -408,12 +408,47 @@
             }
         }
         
-       function genererRapport() {
+        function genererRapport() {
             const reportType = document.getElementById('reportType').value;
             let filteredData = [];
             let titre = '';
             
-            // [Le code de filtrage reste inchangé]
+            // Filtrer les données selon le type de rapport
+            if (reportType === 'journalier') {
+                const date = document.getElementById('reportDate').value;
+                filteredData = productions.filter(p => p.date === date);
+                titre = `Rapport Journalier - ${date}`;
+            } 
+            else if (reportType === 'hebdomadaire') {
+                const weekInput = document.getElementById('reportWeek').value;
+                const year = parseInt(weekInput.substring(0, 4));
+                const week = parseInt(weekInput.substring(6));
+                
+                filteredData = productions.filter(p => {
+                    const prodDate = new Date(p.date);
+                    const prodYear = prodDate.getFullYear();
+                    const prodWeek = getWeekNumber(prodDate);
+                    
+                    return prodYear === year && prodWeek === week;
+                });
+                
+                titre = `Rapport Hebdomadaire - Semaine ${week} de ${year}`;
+            } 
+            else if (reportType === 'mensuel') {
+                const monthInput = document.getElementById('reportMonth').value;
+                const year = monthInput.substring(0, 4);
+                const month = monthInput.substring(5, 7);
+                
+                filteredData = productions.filter(p => {
+                    return p.date.startsWith(`${year}-${month}`);
+                });
+                
+                const moisNoms = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", 
+                                 "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+                const moisNom = moisNoms[parseInt(month) - 1];
+                
+                titre = `Rapport Mensuel - ${moisNom} ${year}`;
+            }
             
             if (filteredData.length === 0) {
                 alert('Aucune donnée disponible pour cette période');
@@ -429,99 +464,136 @@
             const totalObjectif = filteredData.reduce((sum, p) => sum + p.efficaciteTheorique, 0);
             const moyenneEfficacite = Math.round(filteredData.reduce((sum, p) => sum + p.efficaciteReelle, 0) / filteredData.length);
             
-            // Préparer les données pour le PDF - CORRECTION ICI
+            // Préparer les données pour le PDF - VERSION CORRIGÉE
             const pdfData = filteredData.map(p => [
                 p.date,
                 `Salle ${p.salle}`,
                 p.mo,
                 p.produit,
-                p.quantiteDepart.toString(),
-                p.quantiteTotale.toString(),
-                p.quantiteFin.toString(),
-                p.quantiteProduite.toString(),
-                p.reste.toString(),
-                p.efficaciteTheorique.toString(),
-                `${p.efficaciteReelle}%`  // On conserve explicitement le % ici
+                p.quantiteDepart,
+                p.quantiteTotale,
+                p.quantiteFin,
+                p.quantiteProduite,
+                p.reste,
+                p.efficaciteTheorique,
+                `${p.efficaciteReelle}%`  // Formatage explicite du pourcentage
             ]);
             
-            // Ajouter les totaux - CORRECTION ICI AUSSI
+            // Ajouter les totaux
             pdfData.push([
-                'TOTAUX/MOYENNES', '', '', '',
-                totalDepart.toString(),
-                totalAFaire.toString(),
-                totalFin.toString(),
-                totalProduit.toString(),
-                totalReste.toString(),
-                totalObjectif.toString(),
-                `${moyenneEfficacite}%`  // Ajout du % pour la moyenne
+                'TOTAUX',
+                '',
+                '',
+                '',
+                totalDepart,
+                totalAFaire,
+                totalFin,
+                totalProduit,
+                totalReste,
+                totalObjectif,
+                `${moyenneEfficacite}%`  // Pourcentage pour la moyenne
             ]);
-
-            // Créer le PDF
+            
+            // Créer le PDF avec une mise en page optimisée
             const doc = new jsPDF({
                 orientation: 'landscape',
                 unit: 'mm'
             });
             
             // Titre
-            doc.setFontSize(14);
-            doc.text(titre, 14, 15);
+            doc.setFontSize(16);
+            doc.text(titre, 15, 15);
             doc.setFontSize(10);
-            doc.text(`Généré le: ${new Date().toLocaleDateString()}`, 14, 22);
+            doc.text(`Généré le: ${new Date().toLocaleDateString()}`, 15, 22);
             
-            // Tableau avec les corrections pour l'affichage des pourcentages
+            // Configuration du tableau avec correction pour l'efficacité
             doc.autoTable({
                 startY: 25,
-                head: [['Date', 'Salle', 'MO', 'Produit', 'Départ', 'Total', 'Fin jour', 'Produit', 'Reste', 'Objectif', 'Efficacité']],
+                head: [
+                    [
+                        'Date', 
+                        'Salle', 
+                        'MO', 
+                        'Produit', 
+                        'Départ', 
+                        'Total', 
+                        'Qté fin', 
+                        'Produit', 
+                        'Reste', 
+                        'Objectif', 
+                        '%'
+                    ]
+                ],
                 body: pdfData,
-                styles: { 
-                    fontSize: 7,
-                    cellPadding: 2,
-                    overflow: 'linebreak'
+                margin: { top: 25 },
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 3,
+                    overflow: 'linebreak',
+                    minCellHeight: 8
                 },
-                headStyles: { 
-                    fillColor: [22, 160, 133],
-                    fontSize: 8,
-                    textColor: [255, 255, 255]
+                headStyles: {
+                    fillColor: [51, 122, 183],
+                    textColor: 255,
+                    fontSize: 10,
+                    cellPadding: 4
                 },
                 columnStyles: {
-                    10: { cellWidth: 12 }  // Colonne efficacité un peu plus large
+                    0: { cellWidth: 25 },  // Date
+                    1: { cellWidth: 25 },  // Salle
+                    2: { cellWidth: 15 },  // MO
+                    3: { cellWidth: 45 },  // Produit
+                    4: { cellWidth: 25 },  // Départ
+                    5: { cellWidth: 25 },  // Total
+                    6: { cellWidth: 25 },  // Fin jour
+                    7: { cellWidth: 25 },  // Produit
+                    8: { cellWidth: 25 },  // Reste
+                    9: { cellWidth: 25 },  // Objectif
+                    10: { 
+                        cellWidth: 20,  // Efficacité
+                        textColor: [0, 0, 0] // Texte en noir garanti
+                    }
                 },
                 didDrawCell: function(data) {
-                    // Colorer les cellules d'efficacité (colonne 10)
+                    // Version corrigée pour l'affichage de l'efficacité
                     if (data.column.index === 10 && data.cell.raw) {
-                        const effValue = parseInt(data.cell.raw);
+                        // Extraire la valeur numérique du pourcentage
+                        const effValue = parseInt(data.cell.raw.toString().replace('%', ''));
+                        
                         if (!isNaN(effValue)) {
+                            // Appliquer la couleur de fond
                             if (effValue >= 90) {
-                                doc.setFillColor(212, 237, 218);
+                                doc.setFillColor(212, 237, 218); // Vert clair
                             } else if (effValue >= 70) {
-                                doc.setFillColor(255, 243, 205);
+                                doc.setFillColor(255, 243, 205); // Jaune clair
                             } else {
-                                doc.setFillColor(248, 215, 218);
+                                doc.setFillColor(248, 215, 218); // Rouge clair
                             }
+                            
+                            // Dessiner le fond coloré
                             doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
+                            
+                            // Réécrire le texte pour garantir sa visibilité
+                            doc.setTextColor(0, 0, 0); // Noir
+                            doc.text(
+                                data.cell.raw,
+                                data.cell.x + data.cell.width / 2,
+                                data.cell.y + data.cell.height / 2 + 3,
+                                { align: 'center' }
+                            );
                         }
                     }
                 },
                 didDrawPage: function(data) {
+                    // Footer
                     doc.setFontSize(8);
-                    doc.setTextColor(150);
-                    doc.text('Système de Gestion de Production - © ' + new Date().getFullYear(), 
-                            data.settings.margin.left, 
-                            doc.internal.pageSize.height - 10);
+                    doc.setTextColor(100);
+                    doc.text('Système de Gestion de Production', data.settings.margin.left, doc.internal.pageSize.height - 10);
                 }
             });
             
             // Sauvegarder le PDF
             doc.save(`Rapport_Production_${reportType}.pdf`);
-        }
-        
-        // Fonction utilitaire pour obtenir le numéro de semaine
-        function getWeekNumber(d) {
-            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-            return weekNo;
         }
     </script>
 </body>
