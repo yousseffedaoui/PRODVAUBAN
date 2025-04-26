@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de Production - Rapports PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        input, select { width: 100%; padding: 5px; box-sizing: border-box; }
+        button { padding: 8px 12px; margin: 5px; cursor: pointer; }
+        .btn-add { background-color: #4CAF50; color: white; border: none; }
+        .btn-report { background-color: #2196F3; color: white; border: none; }
+        .form-group { margin-bottom: 15px; }
+        .report-controls { margin: 20px 0; padding: 15px; background: #f9f9f9; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Suivi de Production Journalier</h1>
+        
+        <form id="productionForm">
+            <div class="form-group">
+                <label for="date">Date:</label>
+                <input type="date" id="date" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="salle">Numéro de salle:</label>
+                <select id="salle" required>
+                    <option value="">Sélectionnez une salle</option>
+                    <option value="142">Salle 142</option>
+                    <option value="158">Salle 158</option>
+                    <option value="132">Salle 132</option>
+                    <option value="122">Salle 122</option>
+                    <option value="135">Salle 135</option>
+                    <option value="A">Salle A</option>
+                    <option value="B">Salle B</option>
+                    <option value="C">Salle C</option>
+                    <option value="118">Salle 118</option>
+                    <option value="139">Salle 139</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="mo">Numéro de MO:</label>
+                <input type="text" id="mo" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="produit">Nom du produit:</label>
+                <input type="text" id="produit" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantiteDepart">Quantité de départ:</label>
+                <input type="number" id="quantiteDepart" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantiteTotale">Quantité totale à faire:</label>
+                <input type="number" id="quantiteTotale" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantiteFin">Quantité en fin de journée:</label>
+                <input type="number" id="quantiteFin" required>
+            </div>
+            
+            <button type="button" class="btn-add" onclick="ajouterProduction()">Ajouter à la production</button>
+        </form>
+        
+        <div class="report-controls">
+            <h2>Génération de Rapports</h2>
+            <div>
+                <label for="reportType">Type de rapport:</label>
+                <select id="reportType">
+                    <option value="journalier">Journalier</option>
+                    <option value="hebdomadaire">Hebdomadaire</option>
+                    <option value="mensuel">Mensuel</option>
+                </select>
+            </div>
+            
+            <div id="dateSelection">
+                <div id="dailySelection">
+                    <label for="reportDate">Date:</label>
+                    <input type="date" id="reportDate">
+                </div>
+                
+                <div id="weeklySelection" class="hidden">
+                    <label for="reportWeek">Semaine:</label>
+                    <input type="week" id="reportWeek">
+                </div>
+                
+                <div id="monthlySelection" class="hidden">
+                    <label for="reportMonth">Mois:</label>
+                    <input type="month" id="reportMonth">
+                </div>
+            </div>
+            
+            <button type="button" class="btn-report" onclick="genererRapport()">Générer le Rapport PDF</button>
+        </div>
+        
+        <table id="productionTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Salle</th>
+                    <th>MO</th>
+                    <th>Produit</th>
+                    <th>Départ</th>
+                    <th>Total à faire</th>
+                    <th>Fin journée</th>
+                    <th>Reste à produire</th>
+                </tr>
+            </thead>
+            <tbody id="productionData">
+                <!-- Les données seront ajoutées ici -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Initialisation des données
+        let productions = JSON.parse(localStorage.getItem('productions')) || [];
+        
+        // Initialisation de jsPDF
+        const { jsPDF } = window.jspdf;
+        
+        // Au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Afficher les données existantes
+            afficherProductions();
+            
+            // Configurer la date du jour par défaut
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            document.getElementById('reportDate').value = today;
+            
+            // Gérer le changement de type de rapport
+            document.getElementById('reportType').addEventListener('change', function() {
+                document.getElementById('dailySelection').classList.add('hidden');
+                document.getElementById('weeklySelection').classList.add('hidden');
+                document.getElementById('monthlySelection').classList.add('hidden');
+                
+                if (this.value === 'journalier') {
+                    document.getElementById('dailySelection').classList.remove('hidden');
+                } else if (this.value === 'hebdomadaire') {
+                    document.getElementById('weeklySelection').classList.remove('hidden');
+                } else if (this.value === 'mensuel') {
+                    document.getElementById('monthlySelection').classList.remove('hidden');
+                }
+            });
+        });
+        
+        function ajouterProduction() {
+            // Récupérer les valeurs du formulaire
+            const date = document.getElementById('date').value;
+            const salle = document.getElementById('salle').value;
+            const mo = document.getElementById('mo').value;
+            const produit = document.getElementById('produit').value;
+            const quantiteDepart = parseInt(document.getElementById('quantiteDepart').value);
+            const quantiteTotale = parseInt(document.getElementById('quantiteTotale').value);
+            const quantiteFin = parseInt(document.getElementById('quantiteFin').value);
+            
+            // Validation
+            if (!date || !salle || !mo || !produit || isNaN(quantiteDepart) || isNaN(quantiteTotale) || isNaN(quantiteFin)) {
+                alert('Veuillez remplir tous les champs correctement');
+                return;
+            }
+            
+            // Calculer le reste à produire
+            const reste = quantiteTotale - quantiteFin;
+            
+            // Créer l'objet production
+            const production = {
+                date,
+                salle,
+                mo,
+                produit,
+                quantiteDepart,
+                quantiteTotale,
+                quantiteFin,
+                reste
+            };
+            
+            // Ajouter à la liste
+            productions.push(production);
+            
+            // Sauvegarder dans le localStorage
+            localStorage.setItem('productions', JSON.stringify(productions));
+            
+            // Mettre à jour l'affichage
+            afficherProductions();
+            
+            // Réinitialiser le formulaire
+            document.getElementById('productionForm').reset();
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        }
+        
+        function afficherProductions() {
+            const tbody = document.getElementById('productionData');
+            tbody.innerHTML = '';
+            
+            productions.forEach(prod => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${prod.date}</td>
+                    <td>Salle ${prod.salle}</td>
+                    <td>${prod.mo}</td>
+                    <td>${prod.produit}</td>
+                    <td>${prod.quantiteDepart}</td>
+                    <td>${prod.quantiteTotale}</td>
+                    <td>${prod.quantiteFin}</td>
+                    <td>${prod.reste}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function genererRapport() {
+            const reportType = document.getElementById('reportType').value;
+            let filteredData = [];
+            let titre = '';
+            
+            // Filtrer les données selon le type de rapport
+            if (reportType === 'journalier') {
+                const date = document.getElementById('reportDate').value;
+                filteredData = productions.filter(p => p.date === date);
+                titre = `Rapport Journalier - ${date}`;
+            } 
+            else if (reportType === 'hebdomadaire') {
+                const weekInput = document.getElementById('reportWeek').value;
+                const year = parseInt(weekInput.substring(0, 4));
+                const week = parseInt(weekInput.substring(6));
+                
+                filteredData = productions.filter(p => {
+                    const prodDate = new Date(p.date);
+                    const prodYear = prodDate.getFullYear();
+                    const prodWeek = getWeekNumber(prodDate);
+                    
+                    return prodYear === year && prodWeek === week;
+                });
+                
+                titre = `Rapport Hebdomadaire - Semaine ${week} de ${year}`;
+            } 
+            else if (reportType === 'mensuel') {
+                const monthInput = document.getElementById('reportMonth').value;
+                const year = monthInput.substring(0, 4);
+                const month = monthInput.substring(5, 7);
+                
+                filteredData = productions.filter(p => {
+                    return p.date.startsWith(`${year}-${month}`);
+                });
+                
+                const moisNoms = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", 
+                                 "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+                const moisNom = moisNoms[parseInt(month) - 1];
+                
+                titre = `Rapport Mensuel - ${moisNom} ${year}`;
+            }
+            
+            if (filteredData.length === 0) {
+                alert('Aucune donnée disponible pour cette période');
+                return;
+            }
+            
+            // Calculer les totaux
+            const totalDepart = filteredData.reduce((sum, p) => sum + p.quantiteDepart, 0);
+            const totalAFaire = filteredData.reduce((sum, p) => sum + p.quantiteTotale, 0);
+            const totalFin = filteredData.reduce((sum, p) => sum + p.quantiteFin, 0);
+            const totalReste = filteredData.reduce((sum, p) => sum + p.reste, 0);
+            
+            // Préparer les données pour le PDF
+            const pdfData = filteredData.map(p => [
+                p.date,
+                `Salle ${p.salle}`,
+                p.mo,
+                p.produit,
+                p.quantiteDepart,
+                p.quantiteTotale,
+                p.quantiteFin,
+                p.reste
+            ]);
+            
+            // Ajouter les totaux
+            pdfData.push([
+                'TOTAUX', '', '', '',
+                totalDepart,
+                totalAFaire,
+                totalFin,
+                totalReste
+            ]);
+            
+            // Créer le PDF
+            const doc = new jsPDF();
+            
+            // Titre
+            doc.setFontSize(16);
+            doc.text(titre, 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Généré le: ${new Date().toLocaleDateString()}`, 14, 22);
+            
+            // Tableau
+            doc.autoTable({
+                startY: 30,
+                head: [['Date', 'Salle', 'MO', 'Produit', 'Départ', 'Total', 'Fin jour', 'Reste']],
+                body: pdfData,
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [22, 160, 133] },
+                columnStyles: {
+                    4: { cellWidth: 15 },
+                    5: { cellWidth: 15 },
+                    6: { cellWidth: 15 },
+                    7: { cellWidth: 15 }
+                },
+                didDrawPage: function(data) {
+                    // Footer
+                    doc.setFontSize(8);
+                    doc.setTextColor(150);
+                    doc.text('Système de Gestion de Production', data.settings.margin.left, doc.internal.pageSize.height - 10);
+                }
+            });
+            
+            // Sauvegarder le PDF
+            doc.save(`Rapport_Production_${reportType}.pdf`);
+        }
+        
+        // Fonction utilitaire pour obtenir le numéro de semaine
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return weekNo;
+        }
+    </script>
+</body>
+</html>
