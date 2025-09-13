@@ -3,38 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi de Production Vauban - Synchronisation</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <title>Suivi de Production - Synchronisation Google Drive</title>
     <style>
         :root {
-            --primary: #3498db;
-            --primary-dark: #2980b9;
-            --secondary: #2ecc71;
-            --secondary-dark: #27ae60;
-            --warning: #e67e22;
-            --danger: #e74c3c;
-            --light: #ecf0f1;
-            --dark: #34495e;
-            --gray: #95a5a6;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --primary: #4285F4;
+            --primary-dark: #3367D6;
+            --secondary: #0F9D58;
+            --light: #F8F9FA;
+            --dark: #202124;
         }
         
         body {
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
             background-color: #f5f7fa;
             color: #333;
             line-height: 1.6;
-            padding: 20px;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
             background: white;
             border-radius: 10px;
@@ -54,47 +43,17 @@
             margin-bottom: 10px;
         }
         
-        .description {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-        
-        .alert {
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 15px;
-            margin: 20px;
-            border-radius: 5px;
-            border-left: 5px solid #ffeeba;
-        }
-        
-        .sync-section {
+        .content {
             padding: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
         }
         
         .card {
-            flex: 1;
-            min-width: 300px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 20px;
+            margin-bottom: 20px;
             border-top: 4px solid var(--primary);
-        }
-        
-        .card h2 {
-            color: var(--primary);
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .card p {
-            margin-bottom: 15px;
-            color: #666;
         }
         
         .btn {
@@ -109,7 +68,6 @@
             transition: background-color 0.3s;
             text-align: center;
             margin: 5px 0;
-            width: 100%;
         }
         
         .btn:hover {
@@ -118,47 +76,6 @@
         
         .btn-success {
             background-color: var(--secondary);
-        }
-        
-        .btn-success:hover {
-            background-color: var(--secondary-dark);
-        }
-        
-        .btn-warning {
-            background-color: var(--warning);
-        }
-        
-        .btn-warning:hover {
-            background-color: #d35400;
-        }
-        
-        .btn-danger {
-            background-color: var(--danger);
-        }
-        
-        .btn-danger:hover {
-            background-color: #c0392b;
-        }
-        
-        .instructions {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            border-left: 4px solid var(--primary);
-            margin: 20px;
-        }
-        
-        .instructions h3 {
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-        
-        .instructions ol {
-            margin-left: 20px;
-        }
-        
-        .instructions li {
-            margin-bottom: 10px;
         }
         
         .status {
@@ -180,621 +97,203 @@
             border: 1px solid #f5c6cb;
         }
         
-        .tabs {
-            display: flex;
-            margin: 0 20px;
-            border-bottom: 2px solid #ddd;
-        }
-        
-        .tab {
-            padding: 15px 25px;
-            cursor: pointer;
+        .instructions {
             background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-bottom: none;
-            border-radius: 5px 5px 0 0;
-            margin-right: 5px;
-            font-weight: bold;
-        }
-        
-        .tab.active {
-            background-color: white;
-            border-bottom: 2px solid white;
-            margin-bottom: -2px;
-        }
-        
-        .tab-content {
-            display: none;
             padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid var(--primary);
+            margin: 20px 0;
         }
         
-        .tab-content.active {
-            display: block;
+        .instructions ol {
+            margin-left: 20px;
         }
         
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-        
-        th {
-            background-color: #f2f2f2;
-        }
-        
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        
-        .filters {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-group {
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        @media (max-width: 768px) {
-            .sync-section {
-                flex-direction: column;
-            }
-            
-            .filters {
-                flex-direction: column;
-            }
-            
-            .actions {
-                flex-direction: column;
-            }
+        .code-block {
+            background-color: #f1f3f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: monospace;
+            margin: 15px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Suivi de Production Vauban</h1>
-            <p class="description">Application de suivi de production avec synchronisation multi-postes</p>
+            <h1>Intégration Google Drive API</h1>
+            <p>Synchronisation des données de production avec Google Drive</p>
         </header>
         
-        <div class="alert">
-            <strong>Problème de synchronisation détecté :</strong> Vos données ne sont actuellement visibles que sur ce poste. Utilisez les outils ci-dessous pour les synchroniser avec d'autres postes.
-        </div>
-        
-        <div class="tabs">
-            <div class="tab active" data-tab="saisie">Saisie des données</div>
-            <div class="tab" data-tab="visualisation">Visualisation</div>
-            <div class="tab" data-tab="synchronisation">Synchronisation</div>
-        </div>
-        
-        <div class="tab-content active" id="saisie">
-            <form id="productionForm">
-                <div class="form-group">
-                    <label for="date">Date:</label>
-                    <input type="date" id="date" required>
-                </div>
+        <div class="content">
+            <div class="card">
+                <h2>Configuration de l'API Google Drive</h2>
+                <p>Pour utiliser l'API Google Drive, vous devez d'abord configurer un projet dans Google Cloud Console.</p>
                 
-                <div class="form-group">
-                    <label for="salle">Numéro de salle:</label>
-                    <select id="salle" required>
-                        <option value="">Sélectionnez une salle</option>
-                        <option value="142">142</option>
-                        <option value="158">158</option>
-                        <option value="135">135</option>
-                        <option value="122">122</option>
-                        <option value="118">118</option>
-                        <option value="132">132</option>
-                        <option value="139">139</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="mo">Numéro MO:</label>
-                    <input type="text" id="mo" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="produit">Nom du produit:</label>
-                    <input type="text" id="produit" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="quantiteDepart">Quantité départ:</label>
-                    <input type="number" id="quantiteDepart" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="quantiteTotale">Quantité totale:</label>
-                    <input type="number" id="quantiteTotale" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="quantiteObjectif">Quantité objectif (100% journée):</label>
-                    <input type="number" id="quantiteObjectif" required>
-                </div>
-                
-                <div class="form-group hidden" id="finJourneeGroup">
-                    <label for="quantiteFinJournee">Quantité fin de journée:</label>
-                    <input type="number" id="quantiteFinJournee">
-                </div>
-                
-                <div class="actions">
-                    <button type="submit" class="btn btn-success">Ajouter Entrée</button>
-                    <button type="button" id="showFinJournee" class="btn">Fin de journée</button>
-                </div>
-            </form>
-        </div>
-        
-        <div class="tab-content" id="visualisation">
-            <div class="filters">
-                <div class="filter-group">
-                    <label for="filterDate">Filtrer par date:</label>
-                    <input type="date" id="filterDate">
-                </div>
-                <div class="filter-group">
-                    <label for="filterSalle">Filtrer par salle:</label>
-                    <select id="filterSalle">
-                        <option value="">Toutes les salles</option>
-                        <option value="142">142</option>
-                        <option value="158">158</option>
-                        <option value="135">135</option>
-                        <option value="122">122</option>
-                        <option value="118">118</option>
-                        <option value="132">132</option>
-                        <option value="139">139</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="filterProduit">Filtrer par produit:</label>
-                    <input type="text" id="filterProduit" placeholder="Nom du produit">
+                <div class="instructions">
+                    <h3>Étapes de configuration:</h3>
+                    <ol>
+                        <li>Allez sur <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                        <li>Créez un nouveau projet ou sélectionnez un projet existant</li>
+                        <li>Activez l'API Google Drive</li>
+                        <li>Créez des identifiants OAuth 2.0</li>
+                        <li>Configurez l'écran de consentement OAuth</li>
+                        <li>Ajoutez votre domaine aux autorisations (localhost pour le développement)</li>
+                    </ol>
                 </div>
             </div>
             
-            <table id="productionTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Salle</th>
-                        <th>MO</th>
-                        <th>Produit</th>
-                        <th>Départ</th>
-                        <th>Totale</th>
-                        <th>Restante</th>
-                        <th>Fin journée</th>
-                        <th>Produite</th>
-                        <th>Objectif</th>
-                        <th>Efficacité</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Les données seront ajoutées ici dynamiquement -->
-                </tbody>
-            </table>
-            
-            <div class="actions">
-                <button type="button" id="generateWeekly" class="btn btn-warning">Générer PDF Hebdomadaire</button>
-                <button type="button" id="generateMonthly" class="btn btn-warning">Générer PDF Mensuel</button>
-                <button type="button" id="clearData" class="btn btn-danger">Effacer toutes les données</button>
-            </div>
-        </div>
-        
-        <div class="tab-content" id="synchronisation">
-            <div class="sync-section">
-                <div class="card">
-                    <h2>Exporter les données</h2>
-                    <p>Exportez toutes vos données vers un fichier JSON pour les sauvegarder ou les partager avec d'autres postes.</p>
-                    <button id="export-btn" class="btn btn-success">Exporter les données</button>
-                    <div id="export-status"></div>
+            <div class="card">
+                <h2>Intégration avec votre application</h2>
+                <p>Voici comment intégrer l'API Google Drive à votre application de suivi de production:</p>
+                
+                <div class="code-block">
+// Chargement de l'API Google<br>
+function loadGAPI() {<br>
+&nbsp;&nbsp;gapi.load('client:auth2', initClient);<br>
+}<br>
+<br>
+// Initialisation du client Google<br>
+function initClient() {<br>
+&nbsp;&nbsp;gapi.client.init({<br>
+&nbsp;&nbsp;&nbsp;&nbsp;apiKey: 'VOTRE_CLE_API',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;clientId: 'VOTRE_ID_CLIENT',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;scope: "https://www.googleapis.com/auth/drive.file"<br>
+&nbsp;&nbsp;}).then(function () {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// Gestion de l'authentification<br>
+&nbsp;&nbsp;&nbsp;&nbsp;gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());<br>
+&nbsp;&nbsp;});<br>
+}<br>
+<br>
+// Connexion à Google Drive<br>
+function signIn() {<br>
+&nbsp;&nbsp;gapi.auth2.getAuthInstance().signIn();<br>
+}<br>
+<br>
+// Déconnexion de Google Drive<br>
+function signOut() {<br>
+&nbsp;&nbsp;gapi.auth2.getAuthInstance().signOut();<br>
+}<br>
+<br>
+// Sauvegarder les données sur Google Drive<br>
+function saveToDrive(data, filename) {<br>
+&nbsp;&nbsp;const fileContent = JSON.stringify(data);<br>
+&nbsp;&nbsp;const file = new Blob([fileContent], {type: "application/json"});<br>
+&nbsp;&nbsp;const metadata = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name: filename,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;mimeType: "application/json"<br>
+&nbsp;&nbsp;};<br>
+<br>
+&nbsp;&nbsp;const accessToken = gapi.auth.getToken().access_token;<br>
+&nbsp;&nbsp;const form = new FormData();<br>
+&nbsp;&nbsp;form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));<br>
+&nbsp;&nbsp;form.append('file', file);<br>
+<br>
+&nbsp;&nbsp;fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;method: 'POST',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;headers: new Headers({'Authorization': 'Bearer ' + accessToken}),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;body: form<br>
+&nbsp;&nbsp;}).then((response) => response.json())<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.then((data) => console.log('Fichier sauvegardé:', data))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.catch((error) => console.error('Erreur:', error));<br>
+}<br>
+<br>
+// Charger les données depuis Google Drive<br>
+function loadFromDrive(fileId) {<br>
+&nbsp;&nbsp;const accessToken = gapi.auth.getToken().access_token;<br>
+&nbsp;&nbsp;fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;headers: new Headers({'Authorization': 'Bearer ' + accessToken})<br>
+&nbsp;&nbsp;}).then((response) => response.json())<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.then((data) => {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log('Données chargées:', data);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Mettre à jour votre application avec ces données<br>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.catch((error) => console.error('Erreur:', error));<br>
+}
                 </div>
                 
-                <div class="card">
-                    <h2>Importer des données</h2>
-                    <p>Importez des données à partir d'un fichier JSON précédemment exporté.</p>
-                    <div class="form-group">
-                        <label for="import-file">Sélectionner le fichier JSON</label>
-                        <input type="file" id="import-file" accept=".json">
-                    </div>
-                    <button id="import-btn" class="btn btn-success">Importer les données</button>
-                    <div id="import-status"></div>
+                <button id="simulate-drive" class="btn">Simuler la connexion à Google Drive</button>
+                <div id="drive-status"></div>
+            </div>
+            
+            <div class="card">
+                <h2>Fonctionnement de la synchronisation</h2>
+                <p>Une fois l'API configurée, voici comment synchroniser vos données:</p>
+                
+                <div class="instructions">
+                    <ol>
+                        <li>L'utilisateur se connecte à son compte Google via votre application</li>
+                        <li>Votre application sauvegarde les données dans un fichier JSON sur Google Drive</li>
+                        <li>Sur un autre poste, l'utilisateur se connecte au même compte Google</li>
+                        <li>Votre application charge les données depuis Google Drive</li>
+                        <li>Les données sont synchronisées entre tous les postes</li>
+                    </ol>
+                </div>
+                
+                <div class="status success">
+                    La synchronisation avec Google Drive permet un accès multi-postes sans transfert manuel de fichiers.
                 </div>
             </div>
             
-            <div class="instructions">
-                <h3>Comment synchroniser vos données entre plusieurs postes</h3>
-                <ol>
-                    <li>Sur le poste source, exportez les données en cliquant sur "Exporter les données"</li>
-                    <li>Enregistrez le fichier JSON généré à un emplacement accessible</li>
-                    <li>Transférez ce fichier vers l'autre poste (par email, clé USB, réseau, etc.)</li>
-                    <li>Sur le poste de destination, cliquez sur "Parcourir" et sélectionnez le fichier JSON</li>
-                    <li>Cliquez sur "Importer les données" pour charger les données sur le nouveau poste</li>
-                    <li>Répétez ce processus chaque fois que vous modifiez les données sur un poste</li>
-                </ol>
-                <p><strong>Note :</strong> Pour une synchronisation automatique, vous devriez envisager d'utiliser une base de données centralisée ou un service cloud.</p>
+            <div class="card">
+                <h2>Alternative: Google Picker API</h2>
+                <p>Pour une expérience utilisateur plus simple, vous pouvez utiliser Google Picker API:</p>
+                
+                <div class="code-block">
+// Charger Google Picker API<br>
+function loadPicker() {<br>
+&nbsp;&nbsp;gapi.load('picker', initPicker);<br>
+}<br>
+<br>
+// Initialiser Google Picker<br>
+function initPicker() {<br>
+&nbsp;&nbsp;const picker = new google.picker.PickerBuilder()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.addView(google.picker.ViewId.DOCS)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.setOAuthToken(gapi.auth.getToken().access_token)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.setDeveloperKey('VOTRE_CLE_DEVELOPPEUR')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.setCallback(pickerCallback)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.build();<br>
+&nbsp;&nbsp;picker.setVisible(true);<br>
+}<br>
+<br>
+// Callback pour Google Picker<br>
+function pickerCallback(data) {<br>
+&nbsp;&nbsp;if (data.action === google.picker.Action.PICKED) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const fileId = data.docs[0].id;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;loadFromDrive(fileId);<br>
+&nbsp;&nbsp;}<br>
+}
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Initialiser jsPDF
-        const { jsPDF } = window.jspdf;
-        
-        // Stockage des données
-        let productionData = JSON.parse(localStorage.getItem('productionData')) || [];
-        
-        // Éléments du DOM
-        const form = document.getElementById('productionForm');
-        const tableBody = document.getElementById('tableBody');
-        const showFinJourneeBtn = document.getElementById('showFinJournee');
-        const finJourneeGroup = document.getElementById('finJourneeGroup');
-        const generateWeeklyBtn = document.getElementById('generateWeekly');
-        const generateMonthlyBtn = document.getElementById('generateMonthly');
-        const clearDataBtn = document.getElementById('clearData');
-        const filterDate = document.getElementById('filterDate');
-        const filterSalle = document.getElementById('filterSalle');
-        const filterProduit = document.getElementById('filterProduit');
-        const exportBtn = document.getElementById('export-btn');
-        const importBtn = document.getElementById('import-btn');
-        const importFile = document.getElementById('import-file');
-        const exportStatus = document.getElementById('export-status');
-        const importStatus = document.getElementById('import-status');
-        const tabs = document.querySelectorAll('.tab');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
-        // Gestion des onglets
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabId = tab.getAttribute('data-tab');
-                
-                // Désactiver tous les onglets et contenus
-                tabs.forEach(t => t.classList.remove('active'));
-                tabContents.forEach(tc => tc.classList.remove('active'));
-                
-                // Activer l'onglet et le contenu correspondant
-                tab.classList.add('active');
-                document.getElementById(tabId).classList.add('active');
-                
-                // Si on passe à l'onglet visualisation, mettre à jour le tableau
-                if (tabId === 'visualisation') {
-                    renderTable();
-                }
-            });
-        });
-        
-        // Afficher/masquer le champ fin de journée
-        showFinJourneeBtn.addEventListener('click', () => {
-            finJourneeGroup.classList.toggle('hidden');
-            showFinJourneeBtn.textContent = finJourneeGroup.classList.contains('hidden') 
-                ? 'Fin de journée' 
-                : 'Masquer fin de journée';
-        });
-        
-        // Soumission du formulaire
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
+        // Simulation de la connexion à Google Drive
+        document.getElementById('simulate-drive').addEventListener('click', function() {
+            const status = document.getElementById('drive-status');
+            status.innerHTML = '<div class="status">Connexion à Google Drive...</div>';
             
-            const date = document.getElementById('date').value;
-            const salle = document.getElementById('salle').value;
-            const mo = document.getElementById('mo').value;
-            const produit = document.getElementById('produit').value;
-            const quantiteDepart = parseFloat(document.getElementById('quantiteDepart').value);
-            const quantiteTotale = parseFloat(document.getElementById('quantiteTotale').value);
-            const quantiteObjectif = parseFloat(document.getElementById('quantiteObjectif').value);
-            const quantiteFinJournee = document.getElementById('quantiteFinJournee').value 
-                ? parseFloat(document.getElementById('quantiteFinJournee').value) 
-                : null;
-            
-            // Calculer la quantité restante, produite et l'efficacité
-            const quantiteRestante = quantiteTotale - quantiteDepart;
-            let quantiteProduite = null;
-            let efficacite = null;
-            
-            if (quantiteFinJournee !== null) {
-                quantiteProduite = quantiteFinJournee - quantiteDepart;
-                efficacite = ((quantiteProduite) / quantiteObjectif * 100).toFixed(2) + '%';
-            }
-            
-            // Ajouter les données
-            const entry = {
-                id: Date.now(),
-                date,
-                salle,
-                mo,
-                produit,
-                quantiteDepart,
-                quantiteTotale,
-                quantiteRestante,
-                quantiteFinJournee,
-                quantiteProduite,
-                quantiteObjectif,
-                efficacite
-            };
-            
-            productionData.push(entry);
-            saveData();
-            renderTable();
-            form.reset();
-            
-            if (!finJourneeGroup.classList.contains('hidden')) {
-                finJourneeGroup.classList.add('hidden');
-                showFinJourneeBtn.textContent = 'Fin de journée';
-            }
-            
-            // Afficher un message de confirmation
-            alert('Entrée enregistrée avec succès!');
-        });
-        
-        // Rendre le tableau
-        function renderTable(filteredData = null) {
-            const dataToRender = filteredData || productionData;
-            
-            tableBody.innerHTML = '';
-            
-            if (dataToRender.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = '<td colspan="12" style="text-align: center;">Aucune donnée disponible</td>';
-                tableBody.appendChild(row);
-                return;
-            }
-            
-            dataToRender.forEach(entry => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${formatDate(entry.date)}</td>
-                    <td>${entry.salle}</td>
-                    <td>${entry.mo}</td>
-                    <td>${entry.produit}</td>
-                    <td>${entry.quantiteDepart}</td>
-                    <td>${entry.quantiteTotale}</td>
-                    <td>${entry.quantiteRestante}</td>
-                    <td>${entry.quantiteFinJournee !== null ? entry.quantiteFinJournee : '-'}</td>
-                    <td>${entry.quantiteProduite !== null ? entry.quantiteProduite : '-'}</td>
-                    <td>${entry.quantiteObjectif}</td>
-                    <td>${entry.efficacite || '-'}</td>
-                    <td>
-                        <button onclick="editEntry(${entry.id})" class="btn">Modifier</button>
-                        <button onclick="deleteEntry(${entry.id})" class="btn btn-danger">Supprimer</button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-        
-        // Formater la date
-        function formatDate(dateString) {
-            const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-            return new Date(dateString).toLocaleDateString('fr-FR', options);
-        }
-        
-        // Sauvegarder les données
-        function saveData() {
-            localStorage.setItem('productionData', JSON.stringify(productionData));
-        }
-        
-        // Supprimer une entrée
-        window.deleteEntry = function(id) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cette entrée ?')) {
-                productionData = productionData.filter(entry => entry.id !== id);
-                saveData();
-                renderTable();
-            }
-        };
-        
-        // Modifier une entrée
-        window.editEntry = function(id) {
-            const entry = productionData.find(item => item.id === id);
-            if (!entry) return;
-            
-            document.getElementById('date').value = entry.date;
-            document.getElementById('salle').value = entry.salle;
-            document.getElementById('mo').value = entry.mo;
-            document.getElementById('produit').value = entry.produit;
-            document.getElementById('quantiteDepart').value = entry.quantiteDepart;
-            document.getElementById('quantiteTotale').value = entry.quantiteTotale;
-            document.getElementById('quantiteObjectif').value = entry.quantiteObjectif;
-            
-            if (entry.quantiteFinJournee !== null) {
-                document.getElementById('quantiteFinJournee').value = entry.quantiteFinJournee;
-                finJourneeGroup.classList.remove('hidden');
-                showFinJourneeBtn.textContent = 'Masquer fin de journée';
-            }
-            
-            // Supprimer l'ancienne entrée
-            productionData = productionData.filter(item => item.id !== id);
-            saveData();
-        };
-        
-        // Générer PDF hebdomadaire
-        generateWeeklyBtn.addEventListener('click', () => {
-            generatePDF('weekly');
-        });
-        
-        // Générer PDF mensuel
-        generateMonthlyBtn.addEventListener('click', () => {
-            generatePDF('monthly');
-        });
-        
-        // Fonction pour générer PDF
-        function generatePDF(type) {
-            const doc = new jsPDF();
-            const title = type === 'weekly' ? 'Rapport Hebdomadaire de Production' : 'Rapport Mensuel de Production';
-            
-            // Préparer les données pour le PDF
-            const pdfData = productionData.map(entry => [
-                formatDate(entry.date),
-                entry.salle,
-                entry.mo,
-                entry.produit,
-                entry.quantiteDepart,
-                entry.quantiteTotale,
-                entry.quantiteRestante,
-                entry.quantiteFinJournee !== null ? entry.quantiteFinJournee : '-',
-                entry.quantiteProduite !== null ? entry.quantiteProduite : '-',
-                entry.quantiteObjectif,
-                entry.efficacite || '-'
-            ]);
-            
-            // Ajouter le titre
-            doc.text(title, 14, 15);
-            
-            // Ajouter le tableau
-            doc.autoTable({
-                head: [
-                    ['Date', 'Salle', 'MO', 'Produit', 'Départ', 'Totale', 'Restante', 'Fin journée', 'Produite', 'Objectif', 'Efficacité']
-                ],
-                body: pdfData,
-                startY: 20,
-                styles: {
-                    fontSize: 8,
-                    cellWidth: 'wrap'
-                },
-                headStyles: {
-                    fillColor: [64, 64, 64]
-                }
-            });
-            
-            // Sauvegarder le PDF
-            doc.save(`${title.toLowerCase().replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
-        }
-        
-        // Effacer toutes les données
-        clearDataBtn.addEventListener('click', () => {
-            if (confirm('Êtes-vous sûr de vouloir effacer toutes les données ? Cette action est irréversible.')) {
-                productionData = [];
-                saveData();
-                renderTable();
-            }
-        });
-        
-        // Filtrer les données
-        filterDate.addEventListener('change', applyFilters);
-        filterSalle.addEventListener('change', applyFilters);
-        filterProduit.addEventListener('input', applyFilters);
-        
-        function applyFilters() {
-            let filteredData = [...productionData];
-            
-            // Filtrer par date
-            if (filterDate.value) {
-                filteredData = filteredData.filter(entry => entry.date === filterDate.value);
-            }
-            
-            // Filtrer par salle
-            if (filterSalle.value) {
-                filteredData = filteredData.filter(entry => entry.salle === filterSalle.value);
-            }
-            
-            // Filtrer par produit
-            if (filterProduit.value) {
-                const searchTerm = filterProduit.value.toLowerCase();
-                filteredData = filteredData.filter(entry => 
-                    entry.produit.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            renderTable(filteredData);
-        }
-        
-        // Exporter les données
-        exportBtn.addEventListener('click', () => {
-            const dataStr = JSON.stringify(productionData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = 'production-data.json';
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            // Afficher un message de statut
-            exportStatus.innerHTML = '<div class="status success">Données exportées avec succès!</div>';
             setTimeout(() => {
-                exportStatus.innerHTML = '';
-            }, 3000);
+                status.innerHTML = '<div class="status success">Connecté à Google Drive avec succès!</div>';
+                
+                setTimeout(() => {
+                    status.innerHTML += '<div class="status success">Synchronisation des données terminée.</div>';
+                }, 1000);
+            }, 1500);
         });
         
-        // Importer les données
-        importBtn.addEventListener('click', () => {
-            const file = importFile.files[0];
-            if (!file) {
-                importStatus.innerHTML = '<div class="status error">Veuillez sélectionner un fichier</div>';
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    
-                    if (Array.isArray(importedData)) {
-                        // Fusionner les données existantes avec les nouvelles
-                        productionData = [...productionData, ...importedData];
-                        
-                        // Éliminer les doublons basés sur l'ID
-                        productionData = productionData.filter((entry, index, self) =>
-                            index === self.findIndex(e => e.id === entry.id)
-                        );
-                        
-                        saveData();
-                        renderTable();
-                        
-                        importStatus.innerHTML = '<div class="status success">Données importées avec succès!</div>';
-                    } else {
-                        importStatus.innerHTML = '<div class="status error">Format de fichier invalide</div>';
-                    }
-                } catch (error) {
-                    importStatus.innerHTML = '<div class="status error">Erreur lors de l\'importation: ' + error.message + '</div>';
-                }
-            };
-            reader.readAsText(file);
-        });
-        
-        // Initialiser le tableau au chargement
-        renderTable();
+        // Instructions détaillées
+        console.log("Pour une implémentation réelle de l'API Google Drive:");
+        console.log("1. Créez un projet sur https://console.cloud.google.com/");
+        console.log("2. Activez l'API Google Drive");
+        console.log("3. Configurez l'écran de consentement OAuth");
+        console.log("4. Créez des identifiants OAuth 2.0");
+        console.log("5. Ajoutez votre domaine aux autorisations JavaScript");
+        console.log("6. Intégrez le code d'authentification dans votre application");
     </script>
 </body>
 </html>
