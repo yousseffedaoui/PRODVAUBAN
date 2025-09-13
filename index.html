@@ -3,206 +3,458 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi de Production Journalier VAUBAN </title>
+    <title>Suivi de Production Vauban - Synchronisation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2ecc71;
+            --secondary-dark: #27ae60;
+            --warning: #e67e22;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
+            background-color: #f5f7fa;
             color: #333;
+            line-height: 1.6;
+            padding: 20px;
         }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .alert {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 5px;
+            border-left: 5px solid #ffeeba;
+        }
+        
+        .sync-section {
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .card {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-top: 4px solid var(--primary);
+        }
+        
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card p {
+            margin-bottom: 15px;
+            color: #666;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            text-align: center;
+            margin: 5px 0;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--secondary);
+        }
+        
+        .btn-success:hover {
+            background-color: var(--secondary-dark);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+        }
+        
+        .btn-warning:hover {
+            background-color: #d35400;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid var(--primary);
+            margin: 20px;
+        }
+        
+        .instructions h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .tabs {
+            display: flex;
+            margin: 0 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 2px solid white;
+            margin-bottom: -2px;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
         .form-group {
             margin-bottom: 15px;
         }
+        
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
+        
         input, select {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            box-sizing: border-box;
+            font-size: 16px;
         }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
+        
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 10px;
             text-align: left;
         }
+        
         th {
             background-color: #f2f2f2;
         }
+        
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-        .actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        .hidden {
-            display: none;
-        }
+        
         .filters {
             display: flex;
             gap: 15px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
+        
         .filter-group {
             flex: 1;
             min-width: 200px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .sync-section {
+                flex-direction: column;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Suivi de Production Vauban</h1>
+        <header>
+            <h1>Suivi de Production Vauban</h1>
+            <p class="description">Application de suivi de production avec synchronisation multi-postes</p>
+        </header>
         
-        <form id="productionForm">
-            <div class="form-group">
-                <label for="date">Date:</label>
-                <input type="date" id="date" required>
+        <div class="alert">
+            <strong>Problème de synchronisation détecté :</strong> Vos données ne sont actuellement visibles que sur ce poste. Utilisez les outils ci-dessous pour les synchroniser avec d'autres postes.
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="saisie">Saisie des données</div>
+            <div class="tab" data-tab="visualisation">Visualisation</div>
+            <div class="tab" data-tab="synchronisation">Synchronisation</div>
+        </div>
+        
+        <div class="tab-content active" id="saisie">
+            <form id="productionForm">
+                <div class="form-group">
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="salle">Numéro de salle:</label>
+                    <select id="salle" required>
+                        <option value="">Sélectionnez une salle</option>
+                        <option value="142">142</option>
+                        <option value="158">158</option>
+                        <option value="135">135</option>
+                        <option value="122">122</option>
+                        <option value="118">118</option>
+                        <option value="132">132</option>
+                        <option value="139">139</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="mo">Numéro MO:</label>
+                    <input type="text" id="mo" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="produit">Nom du produit:</label>
+                    <input type="text" id="produit" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quantiteDepart">Quantité départ:</label>
+                    <input type="number" id="quantiteDepart" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quantiteTotale">Quantité totale:</label>
+                    <input type="number" id="quantiteTotale" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quantiteObjectif">Quantité objectif (100% journée):</label>
+                    <input type="number" id="quantiteObjectif" required>
+                </div>
+                
+                <div class="form-group hidden" id="finJourneeGroup">
+                    <label for="quantiteFinJournee">Quantité fin de journée:</label>
+                    <input type="number" id="quantiteFinJournee">
+                </div>
+                
+                <div class="actions">
+                    <button type="submit" class="btn btn-success">Ajouter Entrée</button>
+                    <button type="button" id="showFinJournee" class="btn">Fin de journée</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="tab-content" id="visualisation">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="filterDate">Filtrer par date:</label>
+                    <input type="date" id="filterDate">
+                </div>
+                <div class="filter-group">
+                    <label for="filterSalle">Filtrer par salle:</label>
+                    <select id="filterSalle">
+                        <option value="">Toutes les salles</option>
+                        <option value="142">142</option>
+                        <option value="158">158</option>
+                        <option value="135">135</option>
+                        <option value="122">122</option>
+                        <option value="118">118</option>
+                        <option value="132">132</option>
+                        <option value="139">139</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterProduit">Filtrer par produit:</label>
+                    <input type="text" id="filterProduit" placeholder="Nom du produit">
+                </div>
             </div>
             
-            <div class="form-group">
-                <label for="salle">Numéro de salle:</label>
-                <select id="salle" required>
-                    <option value="">Sélectionnez une salle</option>
-                    <option value="142">142</option>
-                    <option value="158">158</option>
-                    <option value="135">135</option>
-                    <option value="122">122</option>
-                    <option value="118">118</option>
-                    <option value="132">132</option>
-                    <option value="139">139</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="mo">Numéro MO:</label>
-                <input type="text" id="mo" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="produit">Nom du produit:</label>
-                <input type="text" id="produit" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="quantiteDepart">Quantité départ:</label>
-                <input type="number" id="quantiteDepart" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="quantiteTotale">Quantité totale:</label>
-                <input type="number" id="quantiteTotale" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="quantiteObjectif">Quantité objectif (100% journée):</label>
-                <input type="number" id="quantiteObjectif" required>
-            </div>
-            
-            <div class="form-group hidden" id="finJourneeGroup">
-                <label for="quantiteFinJournee">Quantité fin de journée:</label>
-                <input type="number" id="quantiteFinJournee">
-            </div>
+            <table id="productionTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Salle</th>
+                        <th>MO</th>
+                        <th>Produit</th>
+                        <th>Départ</th>
+                        <th>Totale</th>
+                        <th>Restante</th>
+                        <th>Fin journée</th>
+                        <th>Produite</th>
+                        <th>Objectif</th>
+                        <th>Efficacité</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Les données seront ajoutées ici dynamiquement -->
+                </tbody>
+            </table>
             
             <div class="actions">
-                <button type="submit">Ajouter Entrée</button>
-                <button type="button" id="showFinJournee">Fin de journée</button>
-            </div>
-        </form>
-        
-        <div class="filters">
-            <div class="filter-group">
-                <label for="filterDate">Filtrer par date:</label>
-                <input type="date" id="filterDate">
-            </div>
-            <div class="filter-group">
-                <label for="filterSalle">Filtrer par salle:</label>
-                <select id="filterSalle">
-                    <option value="">Toutes les salles</option>
-                    <option value="142">142</option>
-                    <option value="158">158</option>
-                    <option value="135">135</option>
-                    <option value="122">122</option>
-                    <option value="118">118</option>
-                    <option value="132">132</option>
-                    <option value="139">139</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="filterProduit">Filtrer par produit:</label>
-                <input type="text" id="filterProduit" placeholder="Nom du produit">
+                <button type="button" id="generateWeekly" class="btn btn-warning">Générer PDF Hebdomadaire</button>
+                <button type="button" id="generateMonthly" class="btn btn-warning">Générer PDF Mensuel</button>
+                <button type="button" id="clearData" class="btn btn-danger">Effacer toutes les données</button>
             </div>
         </div>
         
-        <table id="productionTable">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Salle</th>
-                    <th>MO</th>
-                    <th>Produit</th>
-                    <th>Départ</th>
-                    <th>Totale</th>
-                    <th>Restante</th>
-                    <th>Fin journée</th>
-                    <th>Produite</th>
-                    <th>Objectif</th>
-                    <th>Efficacité</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <!-- Les données seront ajoutées ici dynamiquement -->
-            </tbody>
-        </table>
-        
-        <div class="actions">
-            <button type="button" id="generateWeekly">Générer PDF Hebdomadaire</button>
-            <button type="button" id="generateMonthly">Générer PDF Mensuel</button>
-            <button type="button" id="clearData">Effacer toutes les données</button>
+        <div class="tab-content" id="synchronisation">
+            <div class="sync-section">
+                <div class="card">
+                    <h2>Exporter les données</h2>
+                    <p>Exportez toutes vos données vers un fichier JSON pour les sauvegarder ou les partager avec d'autres postes.</p>
+                    <button id="export-btn" class="btn btn-success">Exporter les données</button>
+                    <div id="export-status"></div>
+                </div>
+                
+                <div class="card">
+                    <h2>Importer des données</h2>
+                    <p>Importez des données à partir d'un fichier JSON précédemment exporté.</p>
+                    <div class="form-group">
+                        <label for="import-file">Sélectionner le fichier JSON</label>
+                        <input type="file" id="import-file" accept=".json">
+                    </div>
+                    <button id="import-btn" class="btn btn-success">Importer les données</button>
+                    <div id="import-status"></div>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h3>Comment synchroniser vos données entre plusieurs postes</h3>
+                <ol>
+                    <li>Sur le poste source, exportez les données en cliquant sur "Exporter les données"</li>
+                    <li>Enregistrez le fichier JSON généré à un emplacement accessible</li>
+                    <li>Transférez ce fichier vers l'autre poste (par email, clé USB, réseau, etc.)</li>
+                    <li>Sur le poste de destination, cliquez sur "Parcourir" et sélectionnez le fichier JSON</li>
+                    <li>Cliquez sur "Importer les données" pour charger les données sur le nouveau poste</li>
+                    <li>Répétez ce processus chaque fois que vous modifiez les données sur un poste</li>
+                </ol>
+                <p><strong>Note :</strong> Pour une synchronisation automatique, vous devriez envisager d'utiliser une base de données centralisée ou un service cloud.</p>
+            </div>
         </div>
     </div>
 
@@ -224,6 +476,33 @@
         const filterDate = document.getElementById('filterDate');
         const filterSalle = document.getElementById('filterSalle');
         const filterProduit = document.getElementById('filterProduit');
+        const exportBtn = document.getElementById('export-btn');
+        const importBtn = document.getElementById('import-btn');
+        const importFile = document.getElementById('import-file');
+        const exportStatus = document.getElementById('export-status');
+        const importStatus = document.getElementById('import-status');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Gestion des onglets
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Désactiver tous les onglets et contenus
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                
+                // Activer l'onglet et le contenu correspondant
+                tab.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+                
+                // Si on passe à l'onglet visualisation, mettre à jour le tableau
+                if (tabId === 'visualisation') {
+                    renderTable();
+                }
+            });
+        });
         
         // Afficher/masquer le champ fin de journée
         showFinJourneeBtn.addEventListener('click', () => {
@@ -283,6 +562,9 @@
                 finJourneeGroup.classList.add('hidden');
                 showFinJourneeBtn.textContent = 'Fin de journée';
             }
+            
+            // Afficher un message de confirmation
+            alert('Entrée enregistrée avec succès!');
         });
         
         // Rendre le tableau
@@ -313,8 +595,8 @@
                     <td>${entry.quantiteObjectif}</td>
                     <td>${entry.efficacite || '-'}</td>
                     <td>
-                        <button onclick="editEntry(${entry.id})">Modifier</button>
-                        <button onclick="deleteEntry(${entry.id})">Supprimer</button>
+                        <button onclick="editEntry(${entry.id})" class="btn">Modifier</button>
+                        <button onclick="deleteEntry(${entry.id})" class="btn btn-danger">Supprimer</button>
                     </td>
                 `;
                 tableBody.appendChild(row);
@@ -456,11 +738,63 @@
             renderTable(filteredData);
         }
         
+        // Exporter les données
+        exportBtn.addEventListener('click', () => {
+            const dataStr = JSON.stringify(productionData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = 'production-data.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            // Afficher un message de statut
+            exportStatus.innerHTML = '<div class="status success">Données exportées avec succès!</div>';
+            setTimeout(() => {
+                exportStatus.innerHTML = '';
+            }, 3000);
+        });
+        
+        // Importer les données
+        importBtn.addEventListener('click', () => {
+            const file = importFile.files[0];
+            if (!file) {
+                importStatus.innerHTML = '<div class="status error">Veuillez sélectionner un fichier</div>';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (Array.isArray(importedData)) {
+                        // Fusionner les données existantes avec les nouvelles
+                        productionData = [...productionData, ...importedData];
+                        
+                        // Éliminer les doublons basés sur l'ID
+                        productionData = productionData.filter((entry, index, self) =>
+                            index === self.findIndex(e => e.id === entry.id)
+                        );
+                        
+                        saveData();
+                        renderTable();
+                        
+                        importStatus.innerHTML = '<div class="status success">Données importées avec succès!</div>';
+                    } else {
+                        importStatus.innerHTML = '<div class="status error">Format de fichier invalide</div>';
+                    }
+                } catch (error) {
+                    importStatus.innerHTML = '<div class="status error">Erreur lors de l\'importation: ' + error.message + '</div>';
+                }
+            };
+            reader.readAsText(file);
+        });
+        
         // Initialiser le tableau au chargement
         renderTable();
     </script>
 </body>
-
 </html>
-
-
