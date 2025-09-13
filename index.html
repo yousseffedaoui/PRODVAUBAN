@@ -3,27 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi de Production - Synchronisation Google Drive</title>
+    <title>Suivi de Production Vauban - Synchronisation Google Drive</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <!-- API Google JavaScript -->
+    <script src="https://apis.google.com/js/api.js"></script>
     <style>
         :root {
             --primary: #4285F4;
             --primary-dark: #3367D6;
             --secondary: #0F9D58;
+            --secondary-dark: #0B8043;
+            --warning: #F4B400;
+            --danger: #DB4437;
             --light: #F8F9FA;
             --dark: #202124;
+            --gray: #9AA0A6;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
             background-color: #f5f7fa;
             color: #333;
             line-height: 1.6;
+            padding: 20px;
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 10px;
@@ -43,17 +56,47 @@
             margin-bottom: 10px;
         }
         
-        .content {
+        .description {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .alert {
+            background-color: #e8f0fe;
+            color: var(--primary-dark);
+            padding: 15px;
+            margin: 20px;
+            border-radius: 5px;
+            border-left: 5px solid var(--primary);
+        }
+        
+        .sync-section {
             padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
         }
         
         .card {
+            flex: 1;
+            min-width: 300px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            margin-bottom: 20px;
             border-top: 4px solid var(--primary);
+        }
+        
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card p {
+            margin-bottom: 15px;
+            color: #666;
         }
         
         .btn {
@@ -68,6 +111,7 @@
             transition: background-color 0.3s;
             text-align: center;
             margin: 5px 0;
+            width: 100%;
         }
         
         .btn:hover {
@@ -76,6 +120,60 @@
         
         .btn-success {
             background-color: var(--secondary);
+        }
+        
+        .btn-success:hover {
+            background-color: var(--secondary-dark);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e6a700;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c1350c;
+        }
+        
+        .cloud-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .cloud-btn img {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid var(--primary);
+            margin: 20px;
+        }
+        
+        .instructions h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
         }
         
         .status {
@@ -97,203 +195,285 @@
             border: 1px solid #f5c6cb;
         }
         
-        .instructions {
+        .tabs {
+            display: flex;
+            margin: 0 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
             background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 2px solid white;
+            margin-bottom: -2px;
+        }
+        
+        .tab-content {
+            display: none;
             padding: 20px;
-            border-radius: 5px;
-            border-left: 4px solid var(--primary);
-            margin: 20px 0;
         }
         
-        .instructions ol {
-            margin-left: 20px;
+        .tab-content.active {
+            display: block;
         }
         
-        .code-block {
-            background-color: #f1f3f4;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            font-family: monospace;
-            margin: 15px 0;
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .sync-section {
+                flex-direction: column;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Intégration Google Drive API</h1>
-            <p>Synchronisation des données de production avec Google Drive</p>
+            <h1>Suivi de Production Vauban</h1>
+            <p class="description">Application de suivi de production avec synchronisation Google Drive</p>
         </header>
         
-        <div class="content">
-            <div class="card">
-                <h2>Configuration de l'API Google Drive</h2>
-                <p>Pour utiliser l'API Google Drive, vous devez d'abord configurer un projet dans Google Cloud Console.</p>
+        <div class="alert">
+            <strong>Synchronisation Google Drive :</strong> Connectez-vous pour sauvegarder et synchroniser vos données sur tous vos postes.
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="saisie">Saisie des données</div>
+            <div class="tab" data-tab="visualisation">Visualisation</div>
+            <div class="tab" data-tab="synchronisation">Synchronisation</div>
+        </div>
+        
+        <div class="tab-content active" id="saisie">
+            <form id="productionForm">
+                <div class="form-group">
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" required>
+                </div>
                 
-                <div class="instructions">
-                    <h3>Étapes de configuration:</h3>
-                    <ol>
-                        <li>Allez sur <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
-                        <li>Créez un nouveau projet ou sélectionnez un projet existant</li>
-                        <li>Activez l'API Google Drive</li>
-                        <li>Créez des identifiants OAuth 2.0</li>
-                        <li>Configurez l'écran de consentement OAuth</li>
-                        <li>Ajoutez votre domaine aux autorisations (localhost pour le développement)</li>
-                    </ol>
+                <div class="form-group">
+                    <label for="salle">Numéro de salle:</label>
+                    <select id="salle" required>
+                        <option value="">Sélectionnez une salle</option>
+                        <option value="142">142</option>
+                        <option value="158">158</option>
+                        <option value="135">135</option>
+                        <option value="122">122</option>
+                        <option value="118">118</option>
+                        <option value="132">132</option>
+                        <option value="139">139</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="mo">Numéro MO:</label>
+                    <input type="text" id="mo" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="produit">Nom du produit:</label>
+                    <input type="text" id="produit" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quantiteDepart">Quantité départ:</label>
+                    <input type="number" id="quantiteDepart" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quantiteTotale">Quantité totale:</label>
+                    <input type="number" id="quantiteTotale" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quantiteObjectif">Quantité objectif (100% journée):</label>
+                    <input type="number" id="quantiteObjectif" required>
+                </div>
+                
+                <div class="form-group hidden" id="finJourneeGroup">
+                    <label for="quantiteFinJournee">Quantité fin de journée:</label>
+                    <input type="number" id="quantiteFinJournee">
+                </div>
+                
+                <div class="actions">
+                    <button type="submit" class="btn btn-success">Ajouter Entrée</button>
+                    <button type="button" id="showFinJournee" class="btn">Fin de journée</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="tab-content" id="visualisation">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="filterDate">Filtrer par date:</label>
+                    <input type="date" id="filterDate">
+                </div>
+                <div class="filter-group">
+                    <label for="filterSalle">Filtrer par salle:</label>
+                    <select id="filterSalle">
+                        <option value="">Toutes les salles</option>
+                        <option value="142">142</option>
+                        <option value="158">158</option>
+                        <option value="135">135</option>
+                        <option value="122">122</option>
+                        <option value="118">118</option>
+                        <option value="132">132</option>
+                        <option value="139">139</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterProduit">Filtrer par produit:</label>
+                    <input type="text" id="filterProduit" placeholder="Nom du produit">
                 </div>
             </div>
             
-            <div class="card">
-                <h2>Intégration avec votre application</h2>
-                <p>Voici comment intégrer l'API Google Drive à votre application de suivi de production:</p>
-                
-                <div class="code-block">
-// Chargement de l'API Google<br>
-function loadGAPI() {<br>
-&nbsp;&nbsp;gapi.load('client:auth2', initClient);<br>
-}<br>
-<br>
-// Initialisation du client Google<br>
-function initClient() {<br>
-&nbsp;&nbsp;gapi.client.init({<br>
-&nbsp;&nbsp;&nbsp;&nbsp;apiKey: 'VOTRE_CLE_API',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;clientId: 'VOTRE_ID_CLIENT',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],<br>
-&nbsp;&nbsp;&nbsp;&nbsp;scope: "https://www.googleapis.com/auth/drive.file"<br>
-&nbsp;&nbsp;}).then(function () {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;// Gestion de l'authentification<br>
-&nbsp;&nbsp;&nbsp;&nbsp;gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());<br>
-&nbsp;&nbsp;});<br>
-}<br>
-<br>
-// Connexion à Google Drive<br>
-function signIn() {<br>
-&nbsp;&nbsp;gapi.auth2.getAuthInstance().signIn();<br>
-}<br>
-<br>
-// Déconnexion de Google Drive<br>
-function signOut() {<br>
-&nbsp;&nbsp;gapi.auth2.getAuthInstance().signOut();<br>
-}<br>
-<br>
-// Sauvegarder les données sur Google Drive<br>
-function saveToDrive(data, filename) {<br>
-&nbsp;&nbsp;const fileContent = JSON.stringify(data);<br>
-&nbsp;&nbsp;const file = new Blob([fileContent], {type: "application/json"});<br>
-&nbsp;&nbsp;const metadata = {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;name: filename,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;mimeType: "application/json"<br>
-&nbsp;&nbsp;};<br>
-<br>
-&nbsp;&nbsp;const accessToken = gapi.auth.getToken().access_token;<br>
-&nbsp;&nbsp;const form = new FormData();<br>
-&nbsp;&nbsp;form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));<br>
-&nbsp;&nbsp;form.append('file', file);<br>
-<br>
-&nbsp;&nbsp;fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;method: 'POST',<br>
-&nbsp;&nbsp;&nbsp;&nbsp;headers: new Headers({'Authorization': 'Bearer ' + accessToken}),<br>
-&nbsp;&nbsp;&nbsp;&nbsp;body: form<br>
-&nbsp;&nbsp;}).then((response) => response.json())<br>
-&nbsp;&nbsp;&nbsp;&nbsp;.then((data) => console.log('Fichier sauvegardé:', data))<br>
-&nbsp;&nbsp;&nbsp;&nbsp;.catch((error) => console.error('Erreur:', error));<br>
-}<br>
-<br>
-// Charger les données depuis Google Drive<br>
-function loadFromDrive(fileId) {<br>
-&nbsp;&nbsp;const accessToken = gapi.auth.getToken().access_token;<br>
-&nbsp;&nbsp;fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;headers: new Headers({'Authorization': 'Bearer ' + accessToken})<br>
-&nbsp;&nbsp;}).then((response) => response.json())<br>
-&nbsp;&nbsp;&nbsp;&nbsp;.then((data) => {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log('Données chargées:', data);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Mettre à jour votre application avec ces données<br>
-&nbsp;&nbsp;&nbsp;&nbsp;})<br>
-&nbsp;&nbsp;&nbsp;&nbsp;.catch((error) => console.error('Erreur:', error));<br>
-}
-                </div>
-                
-                <button id="simulate-drive" class="btn">Simuler la connexion à Google Drive</button>
-                <div id="drive-status"></div>
-            </div>
+            <table id="productionTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Salle</th>
+                        <th>MO</th>
+                        <th>Produit</th>
+                        <th>Départ</th>
+                        <th>Totale</th>
+                        <th>Restante</th>
+                        <th>Fin journée</th>
+                        <th>Produite</th>
+                        <th>Objectif</th>
+                        <th>Efficacité</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Les données seront ajoutées ici dynamiquement -->
+                </tbody>
+            </table>
             
-            <div class="card">
-                <h2>Fonctionnement de la synchronisation</h2>
-                <p>Une fois l'API configurée, voici comment synchroniser vos données:</p>
-                
-                <div class="instructions">
-                    <ol>
-                        <li>L'utilisateur se connecte à son compte Google via votre application</li>
-                        <li>Votre application sauvegarde les données dans un fichier JSON sur Google Drive</li>
-                        <li>Sur un autre poste, l'utilisateur se connecte au même compte Google</li>
-                        <li>Votre application charge les données depuis Google Drive</li>
-                        <li>Les données sont synchronisées entre tous les postes</li>
-                    </ol>
-                </div>
-                
-                <div class="status success">
-                    La synchronisation avec Google Drive permet un accès multi-postes sans transfert manuel de fichiers.
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Alternative: Google Picker API</h2>
-                <p>Pour une expérience utilisateur plus simple, vous pouvez utiliser Google Picker API:</p>
-                
-                <div class="code-block">
-// Charger Google Picker API<br>
-function loadPicker() {<br>
-&nbsp;&nbsp;gapi.load('picker', initPicker);<br>
-}<br>
-<br>
-// Initialiser Google Picker<br>
-function initPicker() {<br>
-&nbsp;&nbsp;const picker = new google.picker.PickerBuilder()<br>
-&nbsp;&nbsp;&nbsp;&nbsp;.addView(google.picker.ViewId.DOCS)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;.setOAuthToken(gapi.auth.getToken().access_token)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;.setDeveloperKey('VOTRE_CLE_DEVELOPPEUR')<br>
-&nbsp;&nbsp;&nbsp;&nbsp;.setCallback(pickerCallback)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;.build();<br>
-&nbsp;&nbsp;picker.setVisible(true);<br>
-}<br>
-<br>
-// Callback pour Google Picker<br>
-function pickerCallback(data) {<br>
-&nbsp;&nbsp;if (data.action === google.picker.Action.PICKED) {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;const fileId = data.docs[0].id;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;loadFromDrive(fileId);<br>
-&nbsp;&nbsp;}<br>
-}
-                </div>
+            <div class="actions">
+                <button type="button" id="generateWeekly" class="btn btn-warning">Générer PDF Hebdomadaire</button>
+                <button type="button" id="generateMonthly" class="btn btn-warning">Générer PDF Mensuel</button>
+                <button type="button" id="clearData" class="btn btn-danger">Effacer toutes les données</button>
             </div>
         </div>
-    </div>
-
-    <script>
-        // Simulation de la connexion à Google Drive
-        document.getElementById('simulate-drive').addEventListener('click', function() {
-            const status = document.getElementById('drive-status');
-            status.innerHTML = '<div class="status">Connexion à Google Drive...</div>';
-            
-            setTimeout(() => {
-                status.innerHTML = '<div class="status success">Connecté à Google Drive avec succès!</div>';
-                
-                setTimeout(() => {
-                    status.innerHTML += '<div class="status success">Synchronisation des données terminée.</div>';
-                }, 1000);
-            }, 1500);
-        });
         
-        // Instructions détaillées
-        console.log("Pour une implémentation réelle de l'API Google Drive:");
-        console.log("1. Créez un projet sur https://console.cloud.google.com/");
-        console.log("2. Activez l'API Google Drive");
-        console.log("3. Configurez l'écran de consentement OAuth");
-        console.log("4. Créez des identifiants OAuth 2.0");
-        console.log("5. Ajoutez votre domaine aux autorisations JavaScript");
-        console.log("6. Intégrez le code d'authentification dans votre application");
-    </script>
-</body>
-</html>
+        <div class="tab-content" id="synchronisation">
+            <div class="sync-section">
+                <div class="card">
+                    <h2>Synchronisation avec Google Drive</h2>
+                    <p>Connectez-vous à votre compte Google pour sauvegarder et synchroniser vos données.</p>
+                    <button id="google-drive-btn" class="btn cloud-btn">
+                        <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7.71 3.29L6.29 4.71L9.17 7.59L9.59 8L11 6.59L8 3.59L7.71 3.29zM12 6.59L15 3.59L15.29 3.29L16.71 4.71L13.83 7.59L13.41 8L12 6.59zM21 9.59L18 6.59L17.71 6.29L16.29 7.71L19.17 10.59L19.59 11L21 9.59zM4 12.59L3.59 13L2.29 14.29L1.59 15L2.29 15.71L4.71 18.29L5.41 19L6.71 17.71L7.41 17L6.71 16.29L4 13.59L4 12.59zM19 12.59L19.59 13L20.29 13.71L21.41 12.59L20.71 11.88L20 12.59L19 12.59zM12 18.59L13 17.59L13.71 18.29L14.41 19L15.71 17.71L16.41 17L15.71 16.29L12 12.59L11.41 12L10.59 12.82L10 13.41L12 15.41L12 18.59zM9 17.59L8 18.59L7.29 17.88L6.59 17.17L5.29 18.47L4.59 19.17L5.29 19.88L6 20.59L6.71 19.88L8 18.59L9 17.59z"/>
+                        </svg>
+                        Se connecter à Google Drive
+                    </button>
+                    <div id="google-status"></div>
+                    <div id="drive-actions" class="hidden">
+                        <button id="save-to-drive" class="btn btn-success">Sauvegarder sur Drive</button>
+                        <button id="load-from-drive" class="btn">Charger depuis Drive</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>Export/Import manuel</h2>
+                    <p>Exportez ou importez manuellement vos données si vous préférez ne pas utiliser Google Drive.</p>
+                    <div class="form-group">
+                        <label for="import-file">Sélectionner le fichier JSON</label>
+                        <input type="file" id="import-file" accept=".json">
+                    </div>
+                    <button id="export-btn" class="btn btn-success">Exporter les données</button>
+                    <button id="import-btn" class="btn">Importer les données</button>
+                    <div id="file-status"></div>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h3>Comment synchroniser vos données avec Google Drive</h3>
+                <ol>
+                    <li>Cliquez sur "Se connecter à Google Drive" et autorisez l'application</li>
+                    <li>Une fois connecté, cliquez sur "Sauvegarder sur Drive" pour enregistrer vos données</li>
+                    <li>Sur un autre poste, connectez-vous au même compte Google et cliquez sur "Charger depuis Drive"</li>
+                    <li>Vos données seront synchronisées sur tous vos postes</li>
+                </ol>
+                <p><strong>Remarque :</strong> Vous devez configurer les identifiants OAuth dans la Google Cloud Console pour que cette fonctionnalité fonctionne complètement.</p
