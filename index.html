@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi de Production Vauban - Synchronisation Google Drive</title>
+    <title>Suivi de Production Vauban - Mobile</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <!-- API Google JavaScript -->
@@ -32,89 +32,94 @@
             background-color: #f5f7fa;
             color: #333;
             line-height: 1.6;
-            padding: 20px;
+            padding: 10px;
+            font-size: 14px;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 100%;
             margin: 0 auto;
             background: white;
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
         
         header {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            padding: 25px;
+            padding: 15px;
             text-align: center;
+            position: relative;
         }
         
         h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 22px;
+            margin-bottom: 8px;
         }
         
         .description {
-            font-size: 16px;
+            font-size: 14px;
             opacity: 0.9;
         }
         
         .alert {
             background-color: #e8f0fe;
             color: var(--primary-dark);
-            padding: 15px;
-            margin: 20px;
+            padding: 12px;
+            margin: 15px;
             border-radius: 5px;
-            border-left: 5px solid var(--primary);
+            border-left: 4px solid var(--primary);
+            font-size: 13px;
         }
         
         .sync-section {
-            padding: 20px;
+            padding: 15px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
+            flex-direction: column;
+            gap: 15px;
         }
         
         .card {
-            flex: 1;
-            min-width: 300px;
             background: white;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            padding: 15px;
             border-top: 4px solid var(--primary);
+            width: 100%;
         }
         
         .card h2 {
             color: var(--primary);
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 1px solid #eee;
+            font-size: 18px;
         }
         
         .card p {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             color: #666;
+            font-size: 14px;
         }
         
         .btn {
             display: inline-block;
-            padding: 10px 20px;
+            padding: 12px 16px;
             background-color: var(--primary);
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             transition: background-color 0.3s;
             text-align: center;
-            margin: 5px 0;
+            margin: 4px 0;
             width: 100%;
+            -webkit-tap-highlight-color: transparent;
         }
         
-        .btn:hover {
+        .btn:hover, .btn:focus {
             background-color: var(--primary-dark);
         }
         
@@ -122,7 +127,7 @@
             background-color: var(--secondary);
         }
         
-        .btn-success:hover {
+        .btn-success:hover, .btn-success:focus {
             background-color: var(--secondary-dark);
         }
         
@@ -131,7 +136,7 @@
             color: #333;
         }
         
-        .btn-warning:hover {
+        .btn-warning:hover, .btn-warning:focus {
             background-color: #e6a700;
         }
         
@@ -139,33 +144,40 @@
             background-color: var(--danger);
         }
         
-        .btn-danger:hover {
+        .btn-danger:hover, .btn-danger:focus {
             background-color: #c1350c;
+        }
+        
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 13px;
         }
         
         .cloud-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
         }
         
         .cloud-btn img {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
         }
         
         .instructions {
             background-color: #f8f9fa;
-            padding: 20px;
+            padding: 15px;
             border-radius: 5px;
             border-left: 4px solid var(--primary);
-            margin: 20px;
+            margin: 15px;
+            font-size: 13px;
         }
         
         .instructions h3 {
             color: var(--primary);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            font-size: 16px;
         }
         
         .instructions ol {
@@ -173,14 +185,15 @@
         }
         
         .instructions li {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .status {
-            padding: 10px;
-            margin: 10px 0;
+            padding: 8px;
+            margin: 8px 0;
             border-radius: 4px;
             text-align: center;
+            font-size: 13px;
         }
         
         .status.success {
@@ -197,19 +210,29 @@
         
         .tabs {
             display: flex;
-            margin: 0 20px;
+            margin: 0 10px;
             border-bottom: 2px solid #ddd;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .tabs::-webkit-scrollbar {
+            display: none;
         }
         
         .tab {
-            padding: 15px 25px;
+            padding: 12px 20px;
             cursor: pointer;
             background-color: #f8f9fa;
             border: 1px solid #ddd;
             border-bottom: none;
             border-radius: 5px 5px 0 0;
-            margin-right: 5px;
+            margin-right: 4px;
             font-weight: bold;
+            white-space: nowrap;
+            font-size: 14px;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .tab.active {
@@ -220,7 +243,7 @@
         
         .tab-content {
             display: none;
-            padding: 20px;
+            padding: 15px;
         }
         
         .tab-content.active {
@@ -228,37 +251,58 @@
         }
         
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            font-size: 14px;
         }
         
-        input, select {
+        input, select, textarea {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 16px;
+            font-size: 16px; /* Empêche le zoom sur iOS */
+            -webkit-appearance: none;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+        
+        /* Table responsive */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 15px;
+            position: relative;
+            max-width: 100%;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            min-width: 600px;
         }
         
         th, td {
             border: 1px solid #ddd;
             padding: 10px;
             text-align: left;
+            font-size: 13px;
         }
         
         th {
             background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+            font-weight: bold;
         }
         
         tr:nth-child(even) {
@@ -267,14 +311,13 @@
         
         .filters {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
         }
         
         .filter-group {
-            flex: 1;
-            min-width: 200px;
+            width: 100%;
         }
         
         .hidden {
@@ -283,21 +326,209 @@
         
         .actions {
             display: flex;
+            flex-direction: column;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 15px;
         }
         
+        /* Menu hamburger pour mobile */
+        .mobile-menu-btn {
+            display: none;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 30px;
+            height: 30px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            position: absolute;
+            right: 15px;
+            top: 15px;
+        }
+        
+        .mobile-menu-btn span {
+            width: 100%;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+        }
+        
+        /* Modal pour les actions sur mobile */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: relative;
+            animation: modalopen 0.3s;
+        }
+        
+        @keyframes modalopen {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        
+        .close-modal {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #aaa;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: black;
+        }
+        
+        /* Media queries pour mobile */
         @media (max-width: 768px) {
-            .sync-section {
-                flex-direction: column;
+            body {
+                padding: 5px;
+                font-size: 13px;
             }
             
-            .filters {
-                flex-direction: column;
+            header {
+                padding: 12px;
             }
             
-            .actions {
+            h1 {
+                font-size: 20px;
+            }
+            
+            .tab {
+                padding: 10px 15px;
+                font-size: 13px;
+            }
+            
+            .tab-content {
+                padding: 12px;
+            }
+            
+            .card {
+                padding: 12px;
+            }
+            
+            .btn {
+                padding: 14px 16px; /* Plus grand pour le tactile */
+            }
+            
+            .mobile-menu-btn {
+                display: flex;
+            }
+            
+            .tabs {
                 flex-direction: column;
+                display: none;
+                position: absolute;
+                top: 60px;
+                right: 10px;
+                background: white;
+                border-radius: 5px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10;
+                width: 200px;
+            }
+            
+            .tabs.active {
+                display: flex;
+            }
+            
+            .tab {
+                border-radius: 0;
+                margin-right: 0;
+                border: none;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .tab:last-child {
+                border-bottom: none;
+            }
+            
+            /* Amélioration de l'affichage du tableau sur mobile */
+            .table-container {
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+            
+            th, td {
+                padding: 8px;
+                font-size: 12px;
+            }
+            
+            /* Formulaire optimisé pour mobile */
+            input, select {
+                padding: 14px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 18px;
+            }
+            
+            .tab {
+                padding: 8px 12px;
+            }
+            
+            .alert, .instructions {
+                margin: 10px;
+                padding: 10px;
+            }
+            
+            .btn {
+                font-size: 14px;
+            }
+        }
+        
+        /* Styles pour les écrans très petits */
+        @media (max-width: 360px) {
+            th, td {
+                padding: 6px;
+                font-size: 11px;
+            }
+            
+            .btn {
+                padding: 12px 10px;
+                font-size: 13px;
+            }
+        }
+        
+        /* Amélioration de l'expérience tactile */
+        @media (hover: none) {
+            .btn:hover {
+                background-color: var(--primary);
+            }
+            
+            .btn-success:hover {
+                background-color: var(--secondary);
+            }
+            
+            .btn-warning:hover {
+                background-color: var(--warning);
+            }
+            
+            .btn-danger:hover {
+                background-color: var(--danger);
             }
         }
     </style>
@@ -305,6 +536,11 @@
 <body>
     <div class="container">
         <header>
+            <button class="mobile-menu-btn" id="mobile-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <h1>Suivi de Production Vauban</h1>
             <p class="description">Application de suivi de production avec synchronisation Google Drive</p>
         </header>
@@ -313,8 +549,8 @@
             <strong>Synchronisation Google Drive :</strong> Connectez-vous pour sauvegarder et synchroniser vos données sur tous vos postes.
         </div>
         
-        <div class="tabs">
-            <div class="tab active" data-tab="saisie">Saisie des données</div>
+        <div class="tabs" id="tabs-container">
+            <div class="tab active" data-tab="saisie">Saisie</div>
             <div class="tab" data-tab="visualisation">Visualisation</div>
             <div class="tab" data-tab="synchronisation">Synchronisation</div>
         </div>
@@ -359,7 +595,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="quantiteTotale">Quantité totale à produire:</label>
+                    <label for="quantiteTotale">Quantité totale:</label>
                     <input type="number" id="quantiteTotale" required>
                 </div>
                 
@@ -408,27 +644,29 @@
                 </div>
             </div>
             
-            <table id="productionTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Salle</th>
-                        <th>MO</th>
-                        <th>Produit</th>
-                        <th>Départ</th>
-                        <th>Totale</th>
-                        <th>Restante</th>
-                        <th>Fin journée</th>
-                        <th>Produite</th>
-                        <th>Objectif</th>
-                        <th>Efficacité</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Les données seront ajoutées ici dynamiquement -->
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table id="productionTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Salle</th>
+                            <th>MO</th>
+                            <th>Produit</th>
+                            <th>Départ</th>
+                            <th>Totale</th>
+                            <th>Restante</th>
+                            <th>Fin journée</th>
+                            <th>Produite</th>
+                            <th>Objectif</th>
+                            <th>Efficacité</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Les données seront ajoutées ici dynamiquement -->
+                    </tbody>
+                </table>
+            </div>
             
             <div class="actions">
                 <button type="button" id="generateWeekly" class="btn btn-warning">Générer PDF Hebdomadaire</button>
@@ -481,6 +719,17 @@
         </div>
     </div>
 
+    <!-- Modal pour les actions sur mobile -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <h2 id="modal-title">Action</h2>
+            <div id="modal-body">
+                <!-- Le contenu sera inséré ici dynamiquement -->
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initialiser jsPDF
         const { jsPDF } = window.jspdf;
@@ -513,9 +762,45 @@
         const fileStatus = document.getElementById('file-status');
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
+        const mobileMenuBtn = document.getElementById('mobile-menu');
+        const tabsContainer = document.getElementById('tabs-container');
+        const modal = document.getElementById('actionModal');
+        const closeModalBtn = document.querySelector('.close-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
         
         // Définir la date du jour par défaut
         document.getElementById('date').valueAsDate = new Date();
+        
+        // Gestion du menu mobile
+        mobileMenuBtn.addEventListener('click', () => {
+            tabsContainer.classList.toggle('active');
+        });
+        
+        // Fermer le menu quand on clique ailleurs
+        document.addEventListener('click', (e) => {
+            if (!tabsContainer.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                tabsContainer.classList.remove('active');
+            }
+        });
+        
+        // Gestion de la modal
+        closeModalBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+        
+        // Fonction pour afficher une modal
+        function showModal(title, content) {
+            modalTitle.textContent = title;
+            modalBody.innerHTML = content;
+            modal.style.display = 'block';
+        }
         
         // Gestion des onglets
         tabs.forEach(tab => {
@@ -529,6 +814,9 @@
                 // Activer l'onglet et le contenu correspondant
                 tab.classList.add('active');
                 document.getElementById(tabId).classList.add('active');
+                
+                // Fermer le menu mobile après sélection
+                tabsContainer.classList.remove('active');
                 
                 // Si on passe à l'onglet visualisation, mettre à jour le tableau
                 if (tabId === 'visualisation') {
@@ -600,7 +888,7 @@
             }
             
             // Afficher un message de confirmation
-            alert('Entrée enregistrée avec succès!');
+            showModal('Succès', '<div class="status success">Entrée enregistrée avec succès!</div>');
         });
         
         // Rendre le tableau
@@ -634,8 +922,8 @@
                     <td>${entry.quantiteObjectif}</td>
                     <td>${entry.efficacite || '-'}</td>
                     <td>
-                        <button onclick="editEntry(${entry.id})" class="btn">Modifier</button>
-                        <button onclick="deleteEntry(${entry.id})" class="btn btn-danger">Supprimer</button>
+                        <button onclick="editEntry(${entry.id})" class="btn btn-sm">Modifier</button>
+                        <button onclick="deleteEntry(${entry.id})" class="btn btn-sm btn-danger">Supprimer</button>
                     </td>
                 `;
                 tableBody.appendChild(row);
@@ -655,11 +943,21 @@
         
         // Supprimer une entrée
         window.deleteEntry = function(id) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cette entrée ?')) {
-                productionData = productionData.filter(entry => entry.id !== id);
-                saveData();
-                renderTable();
-            }
+            showModal('Confirmation', `
+                <p>Êtes-vous sûr de vouloir supprimer cette entrée ?</p>
+                <div class="actions">
+                    <button class="btn btn-danger" onclick="confirmDelete(${id})">Oui, supprimer</button>
+                    <button class="btn" onclick="modal.style.display='none'">Annuler</button>
+                </div>
+            `);
+        };
+        
+        window.confirmDelete = function(id) {
+            productionData = productionData.filter(entry => entry.id !== id);
+            saveData();
+            renderTable();
+            modal.style.display = 'none';
+            showModal('Succès', '<div class="status success">Entrée supprimée avec succès!</div>');
         };
         
         // Modifier une entrée
@@ -684,6 +982,14 @@
             // Supprimer l'ancienne entrée
             productionData = productionData.filter(item => item.id !== id);
             saveData();
+            
+            // Basculer vers l'onglet de saisie
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(tc => tc.classList.remove('active'));
+            document.querySelector('[data-tab="saisie"]').classList.add('active');
+            document.getElementById('saisie').classList.add('active');
+            
+            showModal('Modification', '<div class="status success">Vous pouvez maintenant modifier l\'entrée sélectionnée.</div>');
         };
         
         // Générer PDF hebdomadaire
@@ -699,7 +1005,7 @@
         // Fonction pour générer PDF
         function generatePDF(type) {
             if (productionData.length === 0) {
-                alert('Aucune donnée à exporter!');
+                showModal('Erreur', '<div class="status error">Aucune donnée à exporter!</div>');
                 return;
             }
             
@@ -742,16 +1048,28 @@
             
             // Sauvegarder le PDF
             doc.save(`${title.toLowerCase().replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
+            
+            showModal('Succès', '<div class="status success">PDF généré avec succès!</div>');
         }
         
         // Effacer toutes les données
         clearDataBtn.addEventListener('click', () => {
-            if (confirm('Êtes-vous sûr de vouloir effacer toutes les données ? Cette action est irréversible.')) {
-                productionData = [];
-                saveData();
-                renderTable();
-            }
+            showModal('Confirmation', `
+                <p>Êtes-vous sûr de vouloir effacer toutes les données ? Cette action est irréversible.</p>
+                <div class="actions">
+                    <button class="btn btn-danger" onclick="confirmClear()">Oui, tout effacer</button>
+                    <button class="btn" onclick="modal.style.display='none'">Annuler</button>
+                </div>
+            `);
         });
+        
+        window.confirmClear = function() {
+            productionData = [];
+            saveData();
+            renderTable();
+            modal.style.display = 'none';
+            showModal('Succès', '<div class="status success">Toutes les données ont été effacées!</div>');
+        };
         
         // Filtrer les données
         filterDate.addEventListener('change', applyFilters);
@@ -786,8 +1104,8 @@
         function initGoogleDrive() {
             gapi.load('client:auth2', () => {
                 gapi.client.init({
-                    apiKey: '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',
-                    clientId: '743678242760-ejicjsi8if2hqtgku6d7o2v6qnk0ole3.apps.googleusercontent.com',
+                    apiKey: 'VOTRE_CLE_API',
+                    clientId: 'VOTRE_ID_CLIENT',
                     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
                     scope: 'https://www.googleapis.com/auth/drive.file'
                 }).then(() => {
@@ -797,7 +1115,7 @@
                     updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
                 }).catch(error => {
                     console.error('Erreur initialisation API Google:', error);
-                    googleStatus.innerHTML = `<div class="status error">Erreur d'initialisation: ${error.result.error.message}</div>`;
+                    googleStatus.innerHTML = `<div class="status error">Erreur d'initialisation: ${error.result?.error?.message || error.message}</div>`;
                 });
             });
         }
@@ -830,7 +1148,7 @@
         // Sauvegarder sur Google Drive
         saveToDriveBtn.addEventListener('click', () => {
             if (!isGoogleSignedIn) {
-                alert('Veuillez vous connecter à Google Drive d\'abord');
+                showModal('Erreur', '<div class="status error">Veuillez vous connecter à Google Drive d\'abord</div>');
                 return;
             }
             
@@ -861,16 +1179,18 @@
             .then(data => {
                 driveFileId = data.id;
                 googleStatus.innerHTML = '<div class="status success">Données sauvegardées sur Google Drive avec succès!</div>';
+                showModal('Succès', '<div class="status success">Données sauvegardées sur Google Drive avec succès!</div>');
             }).catch(error => {
                 console.error('Erreur sauvegarde Drive:', error);
                 googleStatus.innerHTML = `<div class="status error">Erreur lors de la sauvegarde: ${error.message}</div>`;
+                showModal('Erreur', `<div class="status error">Erreur lors de la sauvegarde: ${error.message}</div>`);
             });
         });
         
         // Charger depuis Google Drive
         loadFromDriveBtn.addEventListener('click', () => {
             if (!isGoogleSignedIn) {
-                alert('Veuillez vous connecter à Google Drive d\'abord');
+                showModal('Erreur', '<div class="status error">Veuillez vous connecter à Google Drive d\'abord</div>');
                 return;
             }
             
@@ -898,9 +1218,11 @@
                 saveData();
                 renderTable();
                 googleStatus.innerHTML = '<div class="status success">Données chargées depuis Google Drive avec succès!</div>';
+                showModal('Succès', '<div class="status success">Données chargées depuis Google Drive avec succès!</div>');
             }).catch(error => {
                 console.error('Erreur chargement Drive:', error);
                 googleStatus.innerHTML = `<div class="status error">Erreur lors du chargement: ${error.result?.error?.message || error.message}</div>`;
+                showModal('Erreur', `<div class="status error">Erreur lors du chargement: ${error.result?.error?.message || error.message}</div>`);
             });
         });
         
@@ -908,6 +1230,7 @@
         exportBtn.addEventListener('click', () => {
             if (productionData.length === 0) {
                 fileStatus.innerHTML = '<div class="status error">Aucune donnée à exporter!</div>';
+                showModal('Erreur', '<div class="status error">Aucune donnée à exporter!</div>');
                 return;
             }
             
@@ -922,6 +1245,7 @@
             linkElement.click();
             
             fileStatus.innerHTML = '<div class="status success">Données exportées avec succès!</div>';
+            showModal('Succès', '<div class="status success">Données exportées avec succès!</div>');
         });
         
         // Importer les données depuis un fichier
@@ -929,6 +1253,7 @@
             const file = importFile.files[0];
             if (!file) {
                 fileStatus.innerHTML = '<div class="status error">Veuillez sélectionner un fichier</div>';
+                showModal('Erreur', '<div class="status error">Veuillez sélectionner un fichier</div>');
                 return;
             }
             
@@ -938,32 +1263,49 @@
                     const importedData = JSON.parse(e.target.result);
                     
                     if (Array.isArray(importedData)) {
-                        if (confirm('Voulez-vous remplacer les données existantes ou les fusionner ?')) {
-                            // Remplacer
-                            productionData = importedData;
-                        } else {
-                            // Fusionner
-                            productionData = [...productionData, ...importedData];
-                        }
-                        
-                        // Éliminer les doublons basés sur l'ID
-                        productionData = productionData.filter((entry, index, self) =>
-                            index === self.findIndex(e => e.id === entry.id)
-                        );
-                        
-                        saveData();
-                        renderTable();
-                        
-                        fileStatus.innerHTML = '<div class="status success">Données importées avec succès!</div>';
+                        showModal('Importation', `
+                            <p>Comment souhaitez-vous importer les données ?</p>
+                            <div class="actions">
+                                <button class="btn btn-danger" onclick="replaceData(${JSON.stringify(importedData).replace(/"/g, '&quot;')})">Remplacer les données existantes</button>
+                                <button class="btn btn-success" onclick="mergeData(${JSON.stringify(importedData).replace(/"/g, '&quot;')})">Fusionner avec les données existantes</button>
+                                <button class="btn" onclick="modal.style.display='none'">Annuler</button>
+                            </div>
+                        `);
                     } else {
                         fileStatus.innerHTML = '<div class="status error">Format de fichier invalide</div>';
+                        showModal('Erreur', '<div class="status error">Format de fichier invalide</div>');
                     }
                 } catch (error) {
                     fileStatus.innerHTML = `<div class="status error">Erreur lors de l'importation: ${error.message}</div>`;
+                    showModal('Erreur', `<div class="status error">Erreur lors de l'importation: ${error.message}</div>`);
                 }
             };
             reader.readAsText(file);
         });
+        
+        window.replaceData = function(importedData) {
+            productionData = importedData;
+            saveData();
+            renderTable();
+            modal.style.display = 'none';
+            fileStatus.innerHTML = '<div class="status success">Données importées avec succès!</div>';
+            showModal('Succès', '<div class="status success">Données importées avec succès!</div>');
+        };
+        
+        window.mergeData = function(importedData) {
+            productionData = [...productionData, ...importedData];
+            
+            // Éliminer les doublons basés sur l'ID
+            productionData = productionData.filter((entry, index, self) =>
+                index === self.findIndex(e => e.id === entry.id)
+            );
+            
+            saveData();
+            renderTable();
+            modal.style.display = 'none';
+            fileStatus.innerHTML = '<div class="status success">Données fusionnées avec succès!</div>';
+            showModal('Succès', '<div class="status success">Données fusionnées avec succès!</div>');
+        };
         
         // Initialiser l'API Google au chargement de la page
         window.onload = function() {
@@ -976,5 +1318,3 @@
     </script>
 </body>
 </html>
-
-
